@@ -261,6 +261,8 @@ static async Task SeedDataAsync(EkubDbContext db)
             UserId = 1,
             SubCategoryId = sub.Id,
             AgreedToTerms = true,
+            Status = SubscriptionStatus.Approved,
+            ApprovedAt = DateTime.UtcNow,
             JoinedAt = DateTime.UtcNow
         });
     }

@@ -3,7 +3,8 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import {
   Category, CreateCategory, CreateSubCategory, SubCategory,
-  SubCategoryDetail, JoinSubCategory, JoinResult, MyEkub
+  SubCategoryDetail, JoinSubCategory, JoinResult, MyEkub,
+  SubmitPaymentProof, EkubSubscription
 } from '../models/models';
 
 @Injectable({ providedIn: 'root' })
@@ -41,5 +42,9 @@ export class CatalogService {
 
   getMyEkubs(): Observable<MyEkub[]> {
     return this.http.get<MyEkub[]>(`${this.baseUrl}/my-ekubs`);
+  }
+
+  submitPaymentProof(subscriptionId: number, data: SubmitPaymentProof): Observable<EkubSubscription> {
+    return this.http.post<EkubSubscription>(`${this.baseUrl}/subscriptions/${subscriptionId}/payment-proof`, data);
   }
 }

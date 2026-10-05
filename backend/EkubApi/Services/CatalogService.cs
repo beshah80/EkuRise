@@ -9,10 +9,12 @@ namespace EkubApi.Services;
 public class CatalogService : ICatalogService
 {
     private readonly EkubDbContext _db;
+    private readonly INotificationService _notifications;
 
-    public CatalogService(EkubDbContext db)
+    public CatalogService(EkubDbContext db, INotificationService notifications)
     {
         _db = db;
+        _notifications = notifications;
     }
 
     // --- Admin: Categories ---
@@ -72,7 +74,7 @@ public class CatalogService : ICatalogService
             TotalAmount = totalAmount,
             StartDate = dto.StartDate,
             TermsAndConditions = dto.TermsAndConditions,
-            MaxMembers = dto.MaxMembers > 0 ? dto.MaxMembers : dto.TotalRounds,
+            MaxMembers = dto.MaxMembers,
             CurrentMemberCount = 0,
             Status = EkubSubCategoryStatus.Open,
             CreatedByAdminId = adminId,
@@ -81,25 +83,9 @@ public class CatalogService : ICatalogService
         _db.EkubSubCategories.Add(subCategory);
         await _db.SaveChangesAsync();
 
-        // Auto-subscribe the admin (they are the organizer but also a member)
-        var subscription = new EkubSubscription
-        {
-            UserId = adminId,
-            SubCategoryId = subCategory.Id,
-            AgreedToTerms = true,
-            JoinedAt = DateTime.UtcNow
-        };
-        _db.EkubSubscriptions.Add(subscription);
-        subCategory.CurrentMemberCount = 1;
-        await _db.SaveChangesAsync();
-
         return MapToSubCategoryDto(subCategory, category.Name, false);
     }
 
-    /// <summary>
-    /// Admin starts the Ekub: creates a Circle from all subscribed members,
-    /// auto-starts it (locks members, creates rounds, sets payout order).
-    /// </summary>
     public async Task StartEkubAsync(int subCategoryId, int adminId)
     {
         await EnsureAdminAsync(adminId);
@@ -114,10 +100,14 @@ public class CatalogService : ICatalogService
             throw new InvalidOperationException("This Ekub has already been started or completed.");
         }
 
-        var subscribers = subCategory.Subscriptions.ToList();
+        // Only approved subscribers become circle members
+        var subscribers = subCategory.Subscriptions
+            .Where(s => s.Status == SubscriptionStatus.Approved)
+            .ToList();
+
         if (subscribers.Count < 2)
         {
-            throw new InvalidOperationException("Need at least 2 members to start an Ekub.");
+            throw new InvalidOperationException("Need at least 2 approved members with verified payments to start an Ekub.");
         }
 
         // Create a Circle
@@ -134,8 +124,8 @@ public class CatalogService : ICatalogService
         _db.Circles.Add(circle);
         await _db.SaveChangesAsync();
 
-        // Add all subscribers as members with payout order by join time
-        var sortedSubs = subscribers.OrderBy(s => s.JoinedAt).ToList();
+        // Add all approved subscribers as members with payout order by approval time
+        var sortedSubs = subscribers.OrderBy(s => s.ApprovedAt ?? s.JoinedAt).ToList();
         for (var i = 0; i < sortedSubs.Count; i++)
         {
             var member = new CircleMember
@@ -196,9 +186,9 @@ public class CatalogService : ICatalogService
             .OrderByDescending(s => s.CreatedAt)
             .ToListAsync();
 
-        // Check which ones the user has joined
+        // Check which ones the user has joined (Approved status)
         var joinedIds = await _db.EkubSubscriptions
-            .Where(sub => sub.UserId == userId && subCategories.Select(s => s.Id).Contains(sub.SubCategoryId))
+            .Where(sub => sub.UserId == userId && sub.Status == SubscriptionStatus.Approved && subCategories.Select(s => s.Id).Contains(sub.SubCategoryId))
             .Select(sub => sub.SubCategoryId)
             .ToHashSetAsync();
 
@@ -212,8 +202,10 @@ public class CatalogService : ICatalogService
             .FirstOrDefaultAsync(s => s.Id == subCategoryId);
         if (sub is null) return null;
 
-        var hasJoined = await _db.EkubSubscriptions
-            .AnyAsync(sub => sub.UserId == userId && sub.SubCategoryId == subCategoryId);
+        var subscription = await _db.EkubSubscriptions
+            .FirstOrDefaultAsync(s => s.UserId == userId && s.SubCategoryId == subCategoryId);
+
+        var hasJoined = subscription is not null && subscription.Status == SubscriptionStatus.Approved;
 
         return new SubCategoryDetailDto(
             sub.Id,
@@ -229,11 +221,17 @@ public class CatalogService : ICatalogService
             sub.CurrentMemberCount,
             sub.Status,
             hasJoined,
-            sub.CircleId
+            sub.CircleId,
+            subscription?.Id,
+            subscription?.Status,
+            subscription?.FullName,
+            subscription?.NationalIdFan,
+            subscription?.PaymentProofUrl,
+            subscription?.RejectionReason
         );
     }
 
-    // --- User: Join ---
+    // --- User: Join & Submit Payment Proof ---
 
     public async Task<JoinResultDto> JoinSubCategoryAsync(int subCategoryId, bool agreedToTerms, int userId)
     {
@@ -256,12 +254,32 @@ public class CatalogService : ICatalogService
             throw new InvalidOperationException("You must agree to the terms and conditions to join.");
         }
 
-        // Check if already joined
+        // Check if already applied or joined
         var existing = await _db.EkubSubscriptions
-            .AnyAsync(sub => sub.UserId == userId && sub.SubCategoryId == subCategoryId);
-        if (existing)
+            .FirstOrDefaultAsync(sub => sub.UserId == userId && sub.SubCategoryId == subCategoryId);
+
+        if (existing is not null)
         {
-            throw new InvalidOperationException("You have already joined this Ekub.");
+            if (existing.Status == SubscriptionStatus.Approved)
+            {
+                throw new InvalidOperationException("You have already joined and been verified for this Ekub.");
+            }
+            if (existing.Status == SubscriptionStatus.PendingApproval)
+            {
+                throw new InvalidOperationException("Your payment proof and National ID are currently under Admin review.");
+            }
+
+            // If in PendingPayment or Rejected, return existing subscription so user can proceed
+            return new JoinResultDto(
+                existing.Id,
+                sub.Id,
+                sub.Name,
+                sub.DailyContribution,
+                sub.TotalAmount,
+                sub.StartDate,
+                "Please proceed to payment and submit your National ID (FAN) and screenshot.",
+                existing.Status
+            );
         }
 
         var subscription = new EkubSubscription
@@ -269,17 +287,19 @@ public class CatalogService : ICatalogService
             UserId = userId,
             SubCategoryId = subCategoryId,
             AgreedToTerms = true,
+            Status = SubscriptionStatus.PendingPayment,
             JoinedAt = DateTime.UtcNow
         };
         _db.EkubSubscriptions.Add(subscription);
-
-        sub.CurrentMemberCount++;
-        if (sub.CurrentMemberCount >= sub.MaxMembers)
-        {
-            sub.Status = EkubSubCategoryStatus.Full;
-        }
-
         await _db.SaveChangesAsync();
+
+        // Create notification for the user to proceed to payment
+        await _notifications.CreateAsync(
+            userId,
+            NotificationType.PaymentReminder,
+            $"Proceed to Payment: {sub.Name}",
+            $"You applied to join {sub.Name}. Please submit your National ID (FAN) and payment screenshot ({sub.DailyContribution:N0} ETB) to verify your slot."
+        );
 
         return new JoinResultDto(
             subscription.Id,
@@ -288,7 +308,60 @@ public class CatalogService : ICatalogService
             sub.DailyContribution,
             sub.TotalAmount,
             sub.StartDate,
-            "You have successfully joined this Ekub!"
+            "Application submitted! Please proceed to submit your payment proof and National ID (FAN).",
+            subscription.Status
+        );
+    }
+
+    public async Task<EkubSubscriptionDto> SubmitPaymentProofAsync(int subscriptionId, SubmitPaymentProofDto dto, int userId)
+    {
+        var subscription = await _db.EkubSubscriptions
+            .Include(s => s.SubCategory).ThenInclude(sc => sc!.Category)
+            .Include(s => s.User)
+            .FirstOrDefaultAsync(s => s.Id == subscriptionId && s.UserId == userId)
+            ?? throw new KeyNotFoundException("Subscription not found.");
+
+        if (subscription.Status == SubscriptionStatus.Approved)
+        {
+            throw new InvalidOperationException("This subscription is already approved and active.");
+        }
+
+        subscription.FullName = dto.FullName.Trim();
+        subscription.NationalIdFan = dto.NationalIdFan.Trim();
+        subscription.PaymentProofUrl = dto.PaymentProofUrl;
+        subscription.Status = SubscriptionStatus.PendingApproval;
+        subscription.SubmittedAt = DateTime.UtcNow;
+        subscription.RejectionReason = null;
+
+        await _db.SaveChangesAsync();
+
+        var sub = subscription.SubCategory!;
+
+        // Notify user that submission was received
+        await _notifications.CreateAsync(
+            userId,
+            NotificationType.General,
+            $"Payment Submitted for {sub.Name}",
+            $"Your payment proof and National ID (FAN: {subscription.NationalIdFan}) were received and are awaiting Admin approval."
+        );
+
+        return new EkubSubscriptionDto(
+            subscription.Id,
+            subscription.UserId,
+            subscription.User?.PhoneNumber ?? "",
+            sub.Id,
+            sub.Name,
+            sub.Category?.Name ?? "",
+            sub.DailyContribution,
+            sub.TotalAmount,
+            subscription.FullName,
+            subscription.NationalIdFan,
+            subscription.PaymentProofUrl,
+            subscription.Status,
+            subscription.RejectionReason,
+            subscription.JoinedAt,
+            subscription.SubmittedAt,
+            subscription.ApprovedAt
         );
     }
 
@@ -315,7 +388,8 @@ public class CatalogService : ICatalogService
                 sub.StartDate,
                 sub.Status,
                 s.JoinedAt,
-                sub.CircleId
+                sub.CircleId,
+                s.Status
             );
         }).ToList();
     }

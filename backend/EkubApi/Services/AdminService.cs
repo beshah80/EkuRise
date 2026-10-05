@@ -9,10 +9,12 @@ namespace EkubApi.Services;
 public class AdminService : IAdminService
 {
     private readonly EkubDbContext _db;
+    private readonly INotificationService _notifications;
 
-    public AdminService(EkubDbContext db)
+    public AdminService(EkubDbContext db, INotificationService notifications)
     {
         _db = db;
+        _notifications = notifications;
     }
 
     private async Task EnsureAdminAsync(int adminId)
@@ -39,6 +41,7 @@ public class AdminService : IAdminService
         var totalSubCategories = await _db.EkubSubCategories.CountAsync();
         var pendingStories = await _db.SuccessStories.CountAsync(s => !s.IsApproved);
         var pendingFeedbacks = await _db.Feedbacks.CountAsync(f => f.Status == FeedbackStatus.Pending);
+        var pendingSubscriptions = await _db.EkubSubscriptions.CountAsync(s => s.Status == SubscriptionStatus.PendingApproval);
 
         var totalSavingsVolume = await _db.EkubSubCategories
             .Where(s => s.Status == EkubSubCategoryStatus.Started || s.Status == EkubSubCategoryStatus.Completed)
@@ -59,7 +62,8 @@ public class AdminService : IAdminService
             totalSubCategories,
             pendingStories,
             pendingFeedbacks,
-            totalSavingsVolume
+            totalSavingsVolume,
+            pendingSubscriptions
         );
     }
 
@@ -218,6 +222,115 @@ public class AdminService : IAdminService
             feedback.Message,
             feedback.Status,
             feedback.CreatedAt
+        );
+    }
+
+    // --- Subscription / Membership Approvals ---
+
+    public async Task<List<EkubSubscriptionDto>> GetSubscriptionsAsync(int adminId)
+    {
+        await EnsureAdminAsync(adminId);
+
+        var subs = await _db.EkubSubscriptions
+            .Include(s => s.SubCategory).ThenInclude(sc => sc!.Category)
+            .Include(s => s.User)
+            .OrderByDescending(s => s.SubmittedAt ?? s.JoinedAt)
+            .ToListAsync();
+
+        return subs.Select(MapToSubscriptionDto).ToList();
+    }
+
+    public async Task<EkubSubscriptionDto> ApproveSubscriptionAsync(int adminId, int subscriptionId)
+    {
+        await EnsureAdminAsync(adminId);
+
+        var subscription = await _db.EkubSubscriptions
+            .Include(s => s.SubCategory).ThenInclude(sc => sc!.Category)
+            .Include(s => s.User)
+            .FirstOrDefaultAsync(s => s.Id == subscriptionId)
+            ?? throw new KeyNotFoundException("Subscription application not found.");
+
+        if (subscription.Status == SubscriptionStatus.Approved)
+        {
+            throw new InvalidOperationException("This subscription is already approved.");
+        }
+
+        var sub = subscription.SubCategory!;
+        if (sub.CurrentMemberCount >= sub.MaxMembers)
+        {
+            throw new InvalidOperationException("This Ekub plan has already reached maximum capacity.");
+        }
+
+        subscription.Status = SubscriptionStatus.Approved;
+        subscription.ApprovedAt = DateTime.UtcNow;
+        subscription.RejectionReason = null;
+
+        sub.CurrentMemberCount++;
+        if (sub.CurrentMemberCount >= sub.MaxMembers)
+        {
+            sub.Status = EkubSubCategoryStatus.Full;
+        }
+
+        await _db.SaveChangesAsync();
+
+        // Send congratulatory notification to user
+        await _notifications.CreateAsync(
+            subscription.UserId,
+            NotificationType.MemberJoined,
+            $"Membership Approved! 🎉",
+            $"Your payment & National ID (FAN: {subscription.NationalIdFan}) for {sub.Name} have been verified. You are now officially joined in slot #{sub.CurrentMemberCount}!"
+        );
+
+        return MapToSubscriptionDto(subscription);
+    }
+
+    public async Task<EkubSubscriptionDto> RejectSubscriptionAsync(int adminId, int subscriptionId, string? reason)
+    {
+        await EnsureAdminAsync(adminId);
+
+        var subscription = await _db.EkubSubscriptions
+            .Include(s => s.SubCategory).ThenInclude(sc => sc!.Category)
+            .Include(s => s.User)
+            .FirstOrDefaultAsync(s => s.Id == subscriptionId)
+            ?? throw new KeyNotFoundException("Subscription application not found.");
+
+        subscription.Status = SubscriptionStatus.Rejected;
+        subscription.RejectionReason = reason ?? "Payment proof or National ID could not be verified.";
+
+        await _db.SaveChangesAsync();
+
+        var sub = subscription.SubCategory!;
+        // Send rejection notification to user
+        await _notifications.CreateAsync(
+            subscription.UserId,
+            NotificationType.General,
+            $"Membership Verification Update: {sub.Name}",
+            $"Your payment verification for {sub.Name} was not approved: {subscription.RejectionReason}. Please review your details and resubmit."
+        );
+
+        return MapToSubscriptionDto(subscription);
+    }
+
+    private static EkubSubscriptionDto MapToSubscriptionDto(EkubSubscription s)
+    {
+        var sub = s.SubCategory!;
+        return new EkubSubscriptionDto(
+            s.Id,
+            s.UserId,
+            s.User?.PhoneNumber ?? "",
+            sub.Id,
+            sub.Name,
+            sub.Category?.Name ?? "",
+            sub.DailyContribution,
+            sub.TotalAmount,
+            s.FullName,
+            s.NationalIdFan,
+            s.PaymentProofUrl,
+            s.Status,
+            s.RejectionReason,
+            s.JoinedAt,
+            s.SubmittedAt,
+            s.ApprovedAt
         );
     }
 }

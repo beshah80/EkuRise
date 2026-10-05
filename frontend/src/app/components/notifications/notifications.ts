@@ -44,6 +44,8 @@ export class Notifications {
       this.router.navigate(['/circles', n.relatedCircleId, 'rounds', n.relatedRoundId]);
     } else if (n.relatedCircleId) {
       this.router.navigate(['/circles', n.relatedCircleId]);
+    } else if (n.title.toLowerCase().includes('payment') || n.title.toLowerCase().includes('membership')) {
+      this.router.navigate(['/account/my-ekubs']);
     }
   }
 

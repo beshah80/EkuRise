@@ -123,4 +123,47 @@ public class AdminController : BaseController
         var feedback = await _adminService.UpdateFeedbackStatusAsync(adminId, feedbackId, dto.Status);
         return Ok(feedback);
     }
+
+    /// <summary>
+    /// List all user membership applications / subscriptions.
+    /// </summary>
+    [HttpGet("subscriptions")]
+    [ProducesResponseType(typeof(List<EkubSubscriptionDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<List<EkubSubscriptionDto>>> GetSubscriptions()
+    {
+        var adminId = GetUserId();
+        var subscriptions = await _adminService.GetSubscriptionsAsync(adminId);
+        return Ok(subscriptions);
+    }
+
+    /// <summary>
+    /// Approve user's membership application, verifying National ID (FAN) and payment screenshot.
+    /// </summary>
+    [HttpPut("subscriptions/{subscriptionId}/approve")]
+    [ProducesResponseType(typeof(EkubSubscriptionDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<EkubSubscriptionDto>> ApproveSubscription(int subscriptionId)
+    {
+        var adminId = GetUserId();
+        var result = await _adminService.ApproveSubscriptionAsync(adminId, subscriptionId);
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Reject user's membership application with reason.
+    /// </summary>
+    [HttpPut("subscriptions/{subscriptionId}/reject")]
+    [ProducesResponseType(typeof(EkubSubscriptionDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<EkubSubscriptionDto>> RejectSubscription(int subscriptionId, [FromBody] RejectSubscriptionDto dto)
+    {
+        var adminId = GetUserId();
+        var result = await _adminService.RejectSubscriptionAsync(adminId, subscriptionId, dto.Reason);
+        return Ok(result);
+    }
 }

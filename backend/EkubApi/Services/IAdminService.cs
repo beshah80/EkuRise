@@ -13,4 +13,8 @@ public interface IAdminService
     Task DeleteStoryAsync(int adminId, int storyId);
     Task<List<AdminFeedbackDto>> GetFeedbacksAsync(int adminId);
     Task<AdminFeedbackDto> UpdateFeedbackStatusAsync(int adminId, int feedbackId, FeedbackStatus status);
+
+    Task<List<EkubSubscriptionDto>> GetSubscriptionsAsync(int adminId);
+    Task<EkubSubscriptionDto> ApproveSubscriptionAsync(int adminId, int subscriptionId);
+    Task<EkubSubscriptionDto> RejectSubscriptionAsync(int adminId, int subscriptionId, string? reason);
 }

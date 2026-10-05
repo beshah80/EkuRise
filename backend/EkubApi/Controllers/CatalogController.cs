@@ -124,4 +124,17 @@ public class CatalogController : BaseController
         var ekubs = await _catalogService.GetMyEkubsAsync(userId);
         return Ok(ekubs);
     }
+    /// <summary>
+    /// Submit payment screenshot and National ID (FAN) for an applied Ekub subscription.
+    /// </summary>
+    [HttpPost("subscriptions/{subscriptionId}/payment-proof")]
+    [ProducesResponseType(typeof(EkubSubscriptionDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<EkubSubscriptionDto>> SubmitPaymentProof(int subscriptionId, [FromBody] SubmitPaymentProofDto dto)
+    {
+        var userId = GetUserId();
+        var result = await _catalogService.SubmitPaymentProofAsync(subscriptionId, dto, userId);
+        return Ok(result);
+    }
 }

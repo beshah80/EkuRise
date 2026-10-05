@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { AdminStats, AdminUser, AdminStory, AdminFeedback } from '../models/models';
+import { AdminStats, AdminUser, AdminStory, AdminFeedback, EkubSubscription } from '../models/models';
 
 @Injectable({ providedIn: 'root' })
 export class AdminService {
@@ -38,5 +38,17 @@ export class AdminService {
 
   updateFeedbackStatus(feedbackId: number, status: number): Observable<AdminFeedback> {
     return this.http.put<AdminFeedback>(`${this.baseUrl}/feedbacks/${feedbackId}/status`, { status });
+  }
+
+  getSubscriptions(): Observable<EkubSubscription[]> {
+    return this.http.get<EkubSubscription[]>(`${this.baseUrl}/subscriptions`);
+  }
+
+  approveSubscription(subscriptionId: number): Observable<EkubSubscription> {
+    return this.http.put<EkubSubscription>(`${this.baseUrl}/subscriptions/${subscriptionId}/approve`, {});
+  }
+
+  rejectSubscription(subscriptionId: number, reason?: string): Observable<EkubSubscription> {
+    return this.http.put<EkubSubscription>(`${this.baseUrl}/subscriptions/${subscriptionId}/reject`, { reason });
   }
 }

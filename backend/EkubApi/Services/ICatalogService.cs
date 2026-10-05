@@ -18,6 +18,7 @@ public interface ICatalogService
 
     // User: join
     Task<JoinResultDto> JoinSubCategoryAsync(int subCategoryId, bool agreedToTerms, int userId);
+    Task<EkubSubscriptionDto> SubmitPaymentProofAsync(int subscriptionId, SubmitPaymentProofDto dto, int userId);
 
     // User: my Ekubs
     Task<List<MyEkubDto>> GetMyEkubsAsync(int userId);

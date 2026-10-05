@@ -144,6 +144,12 @@ export interface SubCategoryDetail {
   status: number;
   hasJoined: boolean;
   circleId?: number;
+  subscriptionId?: number;
+  subscriptionStatus?: number;
+  submittedFullName?: string;
+  submittedNationalIdFan?: string;
+  submittedPaymentProofUrl?: string;
+  rejectionReason?: string;
 }
 
 export interface JoinSubCategory {
@@ -158,6 +164,32 @@ export interface JoinResult {
   totalAmount: number;
   startDate: string;
   message: string;
+  subscriptionStatus?: number;
+}
+
+export interface SubmitPaymentProof {
+  fullName: string;
+  nationalIdFan: string;
+  paymentProofUrl: string;
+}
+
+export interface EkubSubscription {
+  id: number;
+  userId: number;
+  userPhoneNumber: string;
+  subCategoryId: number;
+  subCategoryName: string;
+  categoryName: string;
+  dailyContribution: number;
+  totalAmount: number;
+  fullName?: string;
+  nationalIdFan?: string;
+  paymentProofUrl?: string;
+  status: number;
+  rejectionReason?: string;
+  joinedAt: string;
+  submittedAt?: string;
+  approvedAt?: string;
 }
 
 export interface MyEkub {
@@ -171,6 +203,7 @@ export interface MyEkub {
   status: number;
   joinedAt: string;
   circleId?: number;
+  subscriptionStatus?: number;
 }
 
 // ===== Circle Models =====
@@ -336,6 +369,7 @@ export interface AdminStats {
   pendingStories: number;
   pendingFeedbacks: number;
   totalSavingsVolume: number;
+  pendingSubscriptions: number;
 }
 
 export interface AdminUser {

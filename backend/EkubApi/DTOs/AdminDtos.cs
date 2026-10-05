@@ -12,7 +12,8 @@ public record AdminStatsDto(
     int TotalSubCategories,
     int PendingStories,
     int PendingFeedbacks,
-    decimal TotalSavingsVolume
+    decimal TotalSavingsVolume,
+    int PendingSubscriptions = 0
 );
 
 public record AdminUserDto(

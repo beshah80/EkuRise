@@ -74,3 +74,15 @@ public enum EkubSubCategoryStatus
     Started = 2,    // Circle created and running
     Completed = 3   // Circle finished
 }
+
+/// <summary>
+/// Status of an Ekub membership subscription.
+/// </summary>
+public enum SubscriptionStatus
+{
+    PendingPayment = 0,    // User clicked join, needs to submit National ID (FAN) & payment screenshot
+    PendingApproval = 1,   // User submitted ID & payment, awaiting Admin review
+    Approved = 2,          // Admin approved, officially joined
+    Rejected = 3           // Admin rejected
+}
+

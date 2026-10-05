@@ -10,6 +10,7 @@
 
   @if (sub()) {
     <div class="content">
+      <!-- Plan Summary Card -->
       <div class="card">
         <p class="cat-label">{{ sub()!.categoryName }}</p>
         <h2>{{ sub()!.name }}</h2>
@@ -42,7 +43,8 @@
         </div>
       </div>
 
-      @if (!sub()!.hasJoined && sub()!.status === 0) {
+      <!-- State 1: Fresh Join (User hasn't clicked join yet) -->
+      @if (!sub()!.subscriptionId && !sub()!.hasJoined && sub()!.status === 0) {
         <div class="card">
           <h3>Terms & Conditions</h3>
           <div class="terms-box">{{ sub()!.termsAndConditions }}</div>
@@ -51,24 +53,143 @@
             I have read and agree to the terms and conditions
           </label>
 
-          @if (success()) {
-            <div class="banner success">{{ success() }}</div>
-          }
-          @if (error()) {
-            <div class="banner error">{{ error() }}</div>
-          }
+          @if (success()) { <div class="banner success">{{ success() }}</div> }
+          @if (error()) { <div class="banner error">{{ error() }}</div> }
 
           <button class="btn-primary" [disabled]="!agreed || loading()" (click)="join()">
-            {{ loading() ? 'Joining...' : 'Join Ekub' }}
+            {{ loading() ? 'Submitting...' : 'Join Ekub & Proceed to Payment' }}
           </button>
         </div>
-      } @else if (sub()!.hasJoined) {
-        <div class="banner success">You have already joined this Ekub!</div>
-        @if (sub()!.circleId) {
-          <button class="btn-primary" (click)="viewCircle()">View Circle</button>
-        }
-      } @else {
-        <div class="banner info">This Ekub is {{ statusLabel(sub()!.status) }} and not open for joining.</div>
+      }
+
+      <!-- State 2: Joined, Needs Payment Proof & FAN (PendingPayment = 0 or Rejected = 3) -->
+      @if (sub()!.subscriptionId && (sub()!.subscriptionStatus === 0 || sub()!.subscriptionStatus === 3) && !sub()!.hasJoined) {
+        <div class="card payment-card">
+          <div class="payment-card-header">
+            <span class="step-badge">STEP 2 OF 2</span>
+            <h3>💳 Payment & Verification Required</h3>
+          </div>
+
+          @if (sub()!.subscriptionStatus === 3) {
+            <div class="banner error">
+              ⚠️ Previous submission was rejected: {{ sub()!.rejectionReason }}. Please update and resubmit.
+            </div>
+          }
+
+          <!-- Bank & Telebirr Instructions -->
+          <div class="pay-instructions">
+            <p>Please transfer the first daily contribution of <strong>{{ sub()!.dailyContribution }} ETB</strong> to confirm your slot:</p>
+            <div class="transfer-methods">
+              <div class="method-box">
+                <span class="method-icon">📱</span>
+                <div>
+                  <strong>Telebirr</strong>
+                  <code>0912345678</code>
+                  <small>Admin Organizer</small>
+                </div>
+              </div>
+              <div class="method-box">
+                <span class="method-icon">🏦</span>
+                <div>
+                  <strong>CBE Bank</strong>
+                  <code>1000284729103</code>
+                  <small>EkubCircle Reserve</small>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Payment & National ID Form -->
+          <div class="payment-form">
+            <div class="form-field">
+              <label>Full Name (as per National ID)</label>
+              <input type="text" [(ngModel)]="fullName" placeholder="e.g. Abeba Tadesse" />
+            </div>
+
+            <div class="form-field">
+              <label>National ID / Fayda FAN Number</label>
+              <input type="text" [(ngModel)]="nationalIdFan" placeholder="e.g. FAN-8492-4921-9920" />
+              <small class="field-hint">Your 16-digit or formatted Fayda Identification Number.</small>
+            </div>
+
+            <div class="form-field">
+              <label>Screenshot of Payment Receipt</label>
+              <div class="upload-controls">
+                <input type="file" accept="image/*" (change)="onFileChange($event)" id="receiptUpload" class="file-input" />
+                <label for="receiptUpload" class="btn-secondary upload-btn">📁 Choose Screenshot</label>
+                <button type="button" class="btn-outline-sm" (click)="useDemoReceipt()">⚡ Use Test Receipt</button>
+              </div>
+
+              @if (previewUrl) {
+                <div class="receipt-preview-wrap">
+                  <div class="preview-label">Receipt Preview:</div>
+                  <img [src]="previewUrl" alt="Payment Proof" class="receipt-preview-img" />
+                </div>
+              }
+            </div>
+
+            <button class="btn-primary" [disabled]="submittingProof() || !fullName || !nationalIdFan || !paymentProofUrl" (click)="submitPaymentProof()">
+              {{ submittingProof() ? 'Submitting Proof...' : '🚀 Submit Payment Proof for Admin Approval' }}
+            </button>
+          </div>
+        </div>
+      }
+
+      <!-- State 3: Pending Admin Approval (PendingApproval = 1) -->
+      @if (sub()!.subscriptionStatus === 1 && !sub()!.hasJoined) {
+        <div class="card status-review-card">
+          <div class="status-icon-bubble">⏳</div>
+          <h3>Payment & ID Under Review</h3>
+          <p class="review-desc">
+            Your payment proof and National ID (<strong>FAN: {{ sub()!.submittedNationalIdFan || nationalIdFan }}</strong>) have been submitted and are currently in the Admin verification queue.
+          </p>
+
+          <div class="info-row-box">
+            <div>
+              <span class="info-lbl">Applicant:</span>
+              <strong>{{ sub()!.submittedFullName || fullName }}</strong>
+            </div>
+            <div>
+              <span class="info-lbl">Amount Paid:</span>
+              <strong>{{ sub()!.dailyContribution }} ETB</strong>
+            </div>
+            <div>
+              <span class="info-lbl">Status:</span>
+              <span class="badge-pending">Pending Admin Approval</span>
+            </div>
+          </div>
+
+          @if (previewUrl || sub()!.submittedPaymentProofUrl) {
+            <div class="submitted-proof-preview">
+              <span class="info-lbl">Submitted Receipt:</span>
+              <img [src]="previewUrl || sub()!.submittedPaymentProofUrl" alt="Submitted Receipt" class="receipt-mini-thumb" />
+            </div>
+          }
+
+          <div class="review-actions">
+            <button class="btn-secondary" (click)="goToNotifications()">
+              🔔 Check In-App Notifications
+            </button>
+          </div>
+        </div>
+      }
+
+      <!-- State 4: Officially Approved & Joined -->
+      @if (sub()!.hasJoined || sub()!.subscriptionStatus === 2) {
+        <div class="card joined-card">
+          <div class="joined-icon-bubble">🎉</div>
+          <h3>Membership Verified & Active!</h3>
+          <p class="joined-desc">You are officially registered and approved for this Ekub circle.</p>
+          @if (sub()!.circleId) {
+            <button class="btn-primary" (click)="viewCircle()">👁️ View Active Circle</button>
+          } @else {
+            <div class="banner info">The organizer will start the circle once all slots are filled.</div>
+          }
+        </div>
+      }
+
+      @if (sub()!.status !== 0 && !sub()!.hasJoined && !sub()!.subscriptionId) {
+        <div class="banner info">This Ekub is {{ statusLabel(sub()!.status) }} and not open for new join requests.</div>
       }
     </div>
   }

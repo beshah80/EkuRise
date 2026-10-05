@@ -241,6 +241,10 @@ public class EkubDbContext : DbContext
 
             // A user can only join a sub-category once
             entity.HasIndex(s => new { s.UserId, s.SubCategoryId }).IsUnique();
+
+            entity.Property(s => s.Status).HasConversion<int>();
+            entity.Property(s => s.FullName).HasMaxLength(150);
+            entity.Property(s => s.NationalIdFan).HasMaxLength(50);
         });
     }
 }

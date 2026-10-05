@@ -83,7 +83,7 @@ public record SubCategoryDto(
 );
 
 /// <summary>
-/// Full sub-category detail including terms & conditions (shown when user clicks Join).
+/// Full sub-category detail including terms & conditions and user's subscription verification status.
 /// </summary>
 public record SubCategoryDetailDto(
     int Id,
@@ -99,7 +99,13 @@ public record SubCategoryDetailDto(
     int CurrentMemberCount,
     EkubSubCategoryStatus Status,
     bool HasJoined,
-    int? CircleId
+    int? CircleId,
+    int? SubscriptionId = null,
+    SubscriptionStatus? SubscriptionStatus = null,
+    string? SubmittedFullName = null,
+    string? SubmittedNationalIdFan = null,
+    string? SubmittedPaymentProofUrl = null,
+    string? RejectionReason = null
 );
 
 /// <summary>
@@ -112,7 +118,8 @@ public record JoinResultDto(
     decimal DailyContribution,
     decimal TotalAmount,
     DateTime StartDate,
-    string Message
+    string Message,
+    SubscriptionStatus SubscriptionStatus
 );
 
 /// <summary>
@@ -122,6 +129,50 @@ public record JoinSubCategoryDto
 {
     [Required(ErrorMessage = "You must agree to the terms and conditions")]
     public bool AgreedToTerms { get; init; }
+}
+
+/// <summary>
+/// Request to submit payment proof screenshot and National ID (FAN) for an Ekub subscription.
+/// </summary>
+public record SubmitPaymentProofDto
+{
+    [Required(ErrorMessage = "Full Name is required")]
+    [StringLength(150, MinimumLength = 2, ErrorMessage = "Full Name must be at least 2 characters")]
+    public string FullName { get; init; } = string.Empty;
+
+    [Required(ErrorMessage = "National ID / FAN Number is required")]
+    [StringLength(50, MinimumLength = 4, ErrorMessage = "Please enter a valid National ID / FAN Number")]
+    public string NationalIdFan { get; init; } = string.Empty;
+
+    [Required(ErrorMessage = "Payment screenshot or receipt proof is required")]
+    public string PaymentProofUrl { get; init; } = string.Empty;
+}
+
+/// <summary>
+/// Full subscription record for admin review or user verification history.
+/// </summary>
+public record EkubSubscriptionDto(
+    int Id,
+    int UserId,
+    string UserPhoneNumber,
+    int SubCategoryId,
+    string SubCategoryName,
+    string CategoryName,
+    decimal DailyContribution,
+    decimal TotalAmount,
+    string? FullName,
+    string? NationalIdFan,
+    string? PaymentProofUrl,
+    SubscriptionStatus Status,
+    string? RejectionReason,
+    DateTime JoinedAt,
+    DateTime? SubmittedAt,
+    DateTime? ApprovedAt
+);
+
+public record RejectSubscriptionDto
+{
+    public string? Reason { get; init; }
 }
 
 /// <summary>
@@ -137,5 +188,6 @@ public record MyEkubDto(
     DateTime StartDate,
     EkubSubCategoryStatus Status,
     DateTime JoinedAt,
-    int? CircleId
+    int? CircleId,
+    SubscriptionStatus SubscriptionStatus = SubscriptionStatus.Approved
 );
