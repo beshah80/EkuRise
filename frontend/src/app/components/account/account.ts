@@ -3,6 +3,7 @@ import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { TokenService } from '../../services/token.service';
 import { UserProfile } from '../../models/models';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
   standalone: true,
@@ -16,6 +17,7 @@ export class Account {
   private tokenService = inject(TokenService);
   private router = inject(Router);
 
+  private toast = inject(ToastService);
   profile = signal<UserProfile | null>(null);
   loading = signal(true);
 
@@ -26,8 +28,13 @@ export class Account {
     });
   }
 
+  go(path: string) {
+    this.router.navigate([path]);
+  }
+
   logout() {
     this.tokenService.removeToken();
+    this.toast.info('You have been logged out');
     this.router.navigate(['/login']);
   }
 }

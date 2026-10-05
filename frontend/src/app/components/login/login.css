@@ -101,6 +101,7 @@
 .input-wrap input::placeholder { color: #ccc; }
 .input-wrap input:focus { outline: none; border-color: #0F6B2D; background: white; }
 .input-wrap input.invalid { border-color: #e74c3c; }
+.input-wrap input.otp-inline { text-align: center; letter-spacing: 10px; font-size: 22px; font-weight: 800; }
 
 .btn-primary {
   background: linear-gradient(135deg, #0F6B2D, #1a8a3d);

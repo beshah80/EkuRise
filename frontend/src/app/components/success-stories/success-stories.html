@@ -1,0 +1,58 @@
+<div class="page">
+  <header class="top-bar">
+    <button class="back-btn" (click)="goBack()">←</button>
+    <h1>Success Stories</h1>
+  </header>
+
+  <div class="content">
+    @if (success()) { <div class="banner success">{{ success() }}</div> }
+    @if (error()) { <div class="banner error">{{ error() }}</div> }
+
+    @if (!showForm()) {
+      <button class="share-btn" (click)="showForm.set(true)">✏️ Share Your Story</button>
+    } @else {
+      <div class="card">
+        <form [formGroup]="form" (ngSubmit)="submit()" class="form">
+          <div class="field">
+            <label>Your Story</label>
+            <textarea formControlName="content" placeholder="Tell others how Ekub helped you..."></textarea>
+            @if (form.controls.content.touched && form.controls.content.invalid) {
+              <small class="error-text">At least 20 characters</small>
+            }
+          </div>
+          <div class="field">
+            <label>Rating</label>
+            <div class="rating-row">
+              @for (i of [1,2,3,4,5]; track i) {
+                <button type="button" class="star-btn" [class.active]="i <= rating()" (click)="setRating(i)">⭐</button>
+              }
+            </div>
+          </div>
+          <div class="field">
+            <label>Display Name (optional)</label>
+            <input type="text" formControlName="authorName" placeholder="Leave blank to use your name" />
+          </div>
+          <button type="submit" class="btn-primary" [disabled]="form.invalid">Submit Story</button>
+          <button type="button" class="btn-ghost" (click)="showForm.set(false)">Cancel</button>
+        </form>
+      </div>
+    }
+
+    @if (loading()) { <div class="loading">Loading stories...</div> }
+
+    @for (s of stories(); track s.id) {
+      <div class="story-card">
+        <div class="story-header">
+          <span class="story-author">{{ s.authorName }}</span>
+          <span class="story-date">{{ formatDate(s.createdAt) }}</span>
+        </div>
+        <div class="stars">{{ stars(s.rating).join('') }}</div>
+        <div class="story-content">{{ s.content }}</div>
+      </div>
+    } @empty {
+      @if (!loading()) {
+        <p class="empty">No stories yet. Be the first to share!</p>
+      }
+    }
+  </div>
+</div>

@@ -1,0 +1,31 @@
+.page { background: #f0f2f5; min-height: 100vh; }
+.top-bar { background: #0F6B2D; color: white; padding: 14px 16px; display: flex; align-items: center; gap: 12px; }
+.back-btn { background: none; border: none; color: white; font-size: 20px; cursor: pointer; padding: 4px 8px; }
+.top-bar h1 { margin: 0; font-size: 18px; font-weight: 700; }
+.content { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.card { background: white; border-radius: 14px; padding: 18px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+.share-btn { width: 100%; background: #0F6B2D; color: white; border: none; padding: 14px; border-radius: 10px; font-size: 15px; font-weight: 600; }
+.story-card { background: white; border-radius: 14px; padding: 18px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); border-left: 4px solid #F2B705; }
+.story-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+.story-author { font-size: 15px; font-weight: 700; color: #111; }
+.story-date { font-size: 11px; color: #aaa; }
+.stars { font-size: 14px; margin-bottom: 8px; }
+.story-content { font-size: 14px; color: #444; line-height: 1.6; }
+.form { display: flex; flex-direction: column; gap: 12px; }
+.field { display: flex; flex-direction: column; gap: 5px; }
+.field label { font-size: 13px; font-weight: 600; color: #444; }
+.field input, .field textarea { padding: 12px 14px; border: 1.5px solid #e0e0e0; border-radius: 10px; font-size: 14px; background: #fafafa; }
+.field input:focus, .field textarea:focus { outline: none; border-color: #0F6B2D; }
+.field textarea { resize: vertical; min-height: 100px; font-family: inherit; }
+.rating-row { display: flex; gap: 8px; }
+.star-btn { background: none; border: none; font-size: 28px; cursor: pointer; padding: 0; opacity: 0.3; transition: opacity 0.15s; }
+.star-btn.active { opacity: 1; }
+.btn-primary { background: #0F6B2D; color: white; border: none; padding: 13px; border-radius: 10px; font-size: 15px; font-weight: 600; width: 100%; }
+.btn-primary:disabled { opacity: 0.5; }
+.btn-ghost { background: white; border: 1.5px solid #ddd; padding: 12px; border-radius: 10px; font-size: 14px; width: 100%; color: #555; }
+.empty { text-align: center; padding: 40px 20px; color: #aaa; font-size: 14px; }
+.banner { padding: 12px 14px; border-radius: 10px; font-size: 14px; }
+.banner.success { background: #e8f5e9; color: #0F6B2D; }
+.banner.error { background: #fde8e8; color: #c0392b; }
+.error-text { color: #e74c3c; font-size: 11px; }
+.loading { text-align: center; padding: 40px; color: #888; }

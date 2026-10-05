@@ -1,0 +1,49 @@
+<div class="page">
+  <header class="top-bar">
+    <button class="back-btn" (click)="goBack()">←</button>
+    <h1>Referral</h1>
+  </header>
+
+  @if (toast()) { <div class="toast">{{ toast() }}</div> }
+
+  <div class="content">
+    <div class="hero-card">
+      <div class="gift">🎁</div>
+      <h2>Invite Friends to EkubCircle</h2>
+      <p>Share your referral code with friends and family to grow your savings community.</p>
+    </div>
+
+    @if (code()) {
+      <div class="code-card">
+        <div class="code-label">Your Referral Code</div>
+        <div class="code-box">
+          <div class="code-text">{{ code() }}</div>
+        </div>
+        <div class="btn-row">
+          <button class="btn-copy" [class.copied]="copied()" (click)="copy()">
+            {{ copied() ? '✓ Copied!' : '📋 Copy Code' }}
+          </button>
+          <button class="btn-share" (click)="share()">🔗 Share</button>
+        </div>
+      </div>
+
+      <div class="how-card">
+        <h3>How it works</h3>
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-text">Share your code with a friend</div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-text">They enter your code during registration</div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-text">They join the EkubCircle community</div>
+        </div>
+      </div>
+    } @else {
+      <p style="text-align:center; color:#888; padding: 32px">Loading...</p>
+    }
+  </div>
+</div>

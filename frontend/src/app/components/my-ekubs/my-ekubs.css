@@ -1,0 +1,26 @@
+.page { background: #f0f2f5; min-height: 100vh; }
+.top-bar { background: #0F6B2D; color: white; padding: 14px 16px; display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 10; }
+.back-btn { background: none; border: none; color: white; font-size: 20px; cursor: pointer; padding: 4px 8px; }
+.top-bar h1 { margin: 0; font-size: 18px; font-weight: 700; }
+.filter-bar { display: flex; gap: 8px; padding: 12px 16px; overflow-x: auto; background: white; border-bottom: 1px solid #eee; scrollbar-width: none; }
+.filter-bar::-webkit-scrollbar { display: none; }
+.chip { padding: 6px 14px; border-radius: 16px; border: 1.5px solid #0F6B2D; background: white; color: #0F6B2D; font-size: 13px; font-weight: 600; white-space: nowrap; cursor: pointer; }
+.chip.active { background: #0F6B2D; color: white; }
+.loading { text-align: center; padding: 48px; color: #888; }
+.list { padding: 12px 16px; display: flex; flex-direction: column; gap: 10px; }
+.ekub-row { background: white; border-radius: 14px; padding: 16px; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); border-left: 4px solid #0F6B2D; }
+.ekub-info { flex: 1; display: flex; flex-direction: column; gap: 3px; }
+.cat-label { font-size: 11px; color: #0F6B2D; font-weight: 700; text-transform: uppercase; }
+.ekub-name { font-size: 15px; font-weight: 700; color: #111; }
+.ekub-meta { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+.ekub-meta span { font-size: 12px; color: #555; background: #f0f9f3; padding: 2px 8px; border-radius: 10px; }
+.ekub-date, .joined-date { font-size: 12px; color: #888; }
+.ekub-right { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; flex-shrink: 0; }
+.badge { padding: 4px 10px; border-radius: 10px; font-size: 11px; font-weight: 600; background: #eee; color: #555; }
+.badge.open { background: #e3f2fd; color: #1565c0; }
+.badge.started { background: #ede7f6; color: #6a1b9a; }
+.badge.completed { background: #e8f5e9; color: #0F6B2D; }
+.btn-sm { background: #0F6B2D; color: white; border: none; padding: 7px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; }
+.empty { text-align: center; padding: 60px 20px; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.empty p { color: #888; font-size: 15px; }
+.btn-primary { background: #0F6B2D; color: white; border: none; padding: 12px 24px; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; }

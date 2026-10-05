@@ -3,6 +3,7 @@ import { Router, RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
 import { TokenService } from '../../services/token.service';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
   standalone: true,
@@ -17,6 +18,7 @@ export class Login {
   private tokenService = inject(TokenService);
   private router = inject(Router);
 
+  private toast = inject(ToastService);
   loading = signal(false);
   error = signal('');
   showPin = signal(false);
@@ -24,7 +26,8 @@ export class Login {
 
   form = this.fb.group({
     phoneNumber: ['', [Validators.required, Validators.minLength(10)]],
-    pin: ['']
+    pin: [''],
+    otpCode: ['']
   });
 
   submitOtp() {
@@ -36,11 +39,32 @@ export class Login {
       next: (res) => {
         this.loading.set(false);
         this.otpSent.set(true);
-        this.error.set(`Demo code: ${res.demoCode}`);
+        this.error.set(res.demoCode ? `Demo code: ${res.demoCode}` : '');
       },
       error: (err) => {
         this.loading.set(false);
         this.error.set(err.error?.title || 'Failed to send code');
+      }
+    });
+  }
+
+  verifyOtp() {
+    if (!this.form.value.otpCode) return;
+    this.loading.set(true);
+    this.error.set('');
+
+    this.auth.verifyOtp({
+      phoneNumber: this.form.value.phoneNumber!,
+      code: this.form.value.otpCode!
+    }).subscribe({
+      next: (res) => {
+        this.tokenService.setToken(res.token);
+        this.toast.success('Login successful! Welcome back 👋');
+        this.router.navigate(['/home']);
+      },
+      error: (err) => {
+        this.loading.set(false);
+        this.toast.error(err.error?.title || 'Invalid code');
       }
     });
   }
@@ -62,11 +86,12 @@ export class Login {
     }).subscribe({
       next: (res) => {
         this.tokenService.setToken(res.token);
+        this.toast.success('Login successful! Welcome back 👋');
         this.router.navigate(['/home']);
       },
       error: (err) => {
         this.loading.set(false);
-        this.error.set(err.error?.title || 'Login failed');
+        this.toast.error(err.error?.title || 'Incorrect credentials');
       }
     });
   }

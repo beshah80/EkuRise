@@ -1,0 +1,31 @@
+<div class="page">
+  <header class="top-bar">
+    <button class="back-btn" (click)="goBack()">←</button>
+    <h1>Language</h1>
+  </header>
+
+  <div class="content">
+    @if (success()) { <div class="banner success">{{ success() }}</div> }
+    @if (error()) { <div class="banner error">{{ error() }}</div> }
+
+    <div class="section-card">
+      <div class="lang-option" [class.active]="selected() === 0" (click)="select(0)">
+        <span class="lang-flag">🇬🇧</span>
+        <div class="lang-info">
+          <div class="lang-name">English</div>
+          <div class="lang-sub">App displayed in English</div>
+        </div>
+        @if (selected() === 0) { <span class="check">✓</span> }
+      </div>
+
+      <div class="lang-option" [class.active]="selected() === 1" (click)="select(1)">
+        <span class="lang-flag">🇪🇹</span>
+        <div class="lang-info">
+          <div class="lang-name">አማርኛ</div>
+          <div class="lang-sub">Amharic — App displayed in Amharic</div>
+        </div>
+        @if (selected() === 1) { <span class="check">✓</span> }
+      </div>
+    </div>
+  </div>
+</div>

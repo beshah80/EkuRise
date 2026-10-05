@@ -1,0 +1,52 @@
+<div class="page">
+  <header class="top-bar">
+    <button class="back-btn" (click)="goBack()">←</button>
+    <h1>Questions & Feedback</h1>
+  </header>
+
+  <div class="content">
+    @if (success()) { <div class="banner success">{{ success() }}</div> }
+    @if (error()) { <div class="banner error">{{ error() }}</div> }
+
+    <div class="card">
+      <h3>Send us a message</h3>
+      <form [formGroup]="form" (ngSubmit)="submit()" class="form">
+        <div class="field">
+          <label>Subject</label>
+          <input type="text" formControlName="subject" placeholder="What is your question about?" />
+          @if (form.controls.subject.touched && form.controls.subject.invalid) {
+            <small class="error-text">Subject is required</small>
+          }
+        </div>
+        <div class="field">
+          <label>Message</label>
+          <textarea formControlName="message" placeholder="Describe your question or feedback..."></textarea>
+          @if (form.controls.message.touched && form.controls.message.invalid) {
+            <small class="error-text">Message must be at least 10 characters</small>
+          }
+        </div>
+        <button type="submit" class="btn-primary" [disabled]="form.invalid || loading()">
+          {{ loading() ? 'Sending...' : 'Send Message' }}
+        </button>
+      </form>
+    </div>
+
+    <div class="card">
+      <h3>My Previous Feedback</h3>
+      @for (fb of feedbacks(); track fb.id) {
+        <div class="feedback-item">
+          <div class="fb-subject">{{ fb.subject }}</div>
+          <div class="fb-message">{{ fb.message }}</div>
+          <div class="fb-footer">
+            <span class="fb-date">{{ formatDate(fb.createdAt) }}</span>
+            <span class="badge" [class.reviewed]="fb.status === 1">
+              {{ fb.status === 0 ? 'Pending' : 'Reviewed' }}
+            </span>
+          </div>
+        </div>
+      } @empty {
+        <p class="empty">No feedback submitted yet.</p>
+      }
+    </div>
+  </div>
+</div>

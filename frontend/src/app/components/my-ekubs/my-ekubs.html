@@ -1,0 +1,46 @@
+<div class="page">
+  <header class="top-bar">
+    <button class="back-btn" (click)="goBack()">←</button>
+    <h1>My Ekubs</h1>
+  </header>
+
+  <div class="filter-bar">
+    <button class="chip" [class.active]="filter() === ''" (click)="filter.set('')">All</button>
+    <button class="chip" [class.active]="filter() === '0'" (click)="filter.set('0')">Open</button>
+    <button class="chip" [class.active]="filter() === '2'" (click)="filter.set('2')">Started</button>
+    <button class="chip" [class.active]="filter() === '3'" (click)="filter.set('3')">Completed</button>
+  </div>
+
+  @if (loading()) { <div class="loading">Loading...</div> }
+
+  <div class="list">
+    @for (ekub of filtered(); track ekub.subscriptionId) {
+      <div class="ekub-row">
+        <div class="ekub-info">
+          <div class="cat-label">{{ ekub.categoryName }}</div>
+          <div class="ekub-name">{{ ekub.subCategoryName }}</div>
+          <div class="ekub-meta">
+            <span>{{ ekub.dailyContribution }} ETB/day</span>
+            <span>Total: {{ ekub.totalAmount.toLocaleString() }} ETB</span>
+          </div>
+          <div class="ekub-date">Starts: {{ formatDate(ekub.startDate) }}</div>
+          <div class="joined-date">Joined: {{ formatDate(ekub.joinedAt) }}</div>
+        </div>
+        <div class="ekub-right">
+          <span class="badge" [class]="statusClass(ekub.status)">{{ statusLabel(ekub.status) }}</span>
+          @if (ekub.circleId) {
+            <button class="btn-sm" (click)="viewCircle(ekub.circleId!)">View Circle</button>
+          }
+        </div>
+      </div>
+    } @empty {
+      @if (!loading()) {
+        <div class="empty">
+          <div style="font-size:48px">💰</div>
+          <p>You haven't joined any Ekubs yet.</p>
+          <button class="btn-primary" (click)="goHome()">Browse Ekubs</button>
+        </div>
+      }
+    }
+  </div>
+</div>

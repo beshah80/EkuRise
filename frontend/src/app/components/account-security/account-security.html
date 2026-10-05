@@ -1,0 +1,76 @@
+<div class="page">
+  <header class="top-bar">
+    <button class="back-btn" (click)="goBack()">←</button>
+    <h1>Privacy & Security</h1>
+  </header>
+
+  <div class="content">
+    @if (error()) { <div class="banner error">{{ error() }}</div> }
+    @if (success()) { <div class="banner success">{{ success() }}</div> }
+
+    <!-- PIN Section -->
+    <div class="section-card">
+      <div class="section-row" (click)="showPinForm.set(!showPinForm())">
+        <div class="row-icon">🔐</div>
+        <div class="row-info">
+          <span class="row-title">Change PIN</span>
+          <span class="row-sub">Set or update your 4-6 digit login PIN</span>
+        </div>
+        <span class="chevron">{{ showPinForm() ? '∧' : '›' }}</span>
+      </div>
+
+      @if (showPinForm()) {
+        <form [formGroup]="pinForm" (ngSubmit)="setPin()" class="sub-form">
+          <div class="field">
+            <label>Current PIN (or recent OTP code)</label>
+            <input type="password" formControlName="currentCredential" placeholder="Current PIN or OTP" />
+          </div>
+          <div class="field">
+            <label>New PIN (4-6 digits)</label>
+            <input type="password" formControlName="pin" placeholder="New PIN" maxlength="6" inputmode="numeric" />
+            @if (pinForm.controls.pin.touched && pinForm.controls.pin.invalid) {
+              <small class="error-text">PIN must be 4-6 digits</small>
+            }
+          </div>
+          <button type="submit" class="btn-primary" [disabled]="pinForm.invalid || loading()">
+            {{ loading() ? 'Saving...' : 'Save PIN' }}
+          </button>
+        </form>
+      }
+    </div>
+
+    <!-- Delete Account Section -->
+    <div class="section-card danger-card">
+      <div class="section-row" (click)="showDeleteForm.set(!showDeleteForm())">
+        <div class="row-icon">🗑️</div>
+        <div class="row-info">
+          <span class="row-title danger-text">Delete Account</span>
+          <span class="row-sub">Permanently delete your account and data</span>
+        </div>
+        <span class="chevron">{{ showDeleteForm() ? '∧' : '›' }}</span>
+      </div>
+
+      @if (showDeleteForm()) {
+        <div class="sub-form">
+          @if (!deleteSent()) {
+            <p class="warn-text">This will permanently delete your account and all your data. This action cannot be undone.</p>
+            <button class="btn-danger" (click)="requestDelete()" [disabled]="loading()">
+              {{ loading() ? 'Sending code...' : 'Send Verification Code' }}
+            </button>
+          } @else {
+            @if (deleteCode()) {
+              <div class="demo-hint">Demo code: <strong>{{ deleteCode() }}</strong></div>
+            }
+            <form [formGroup]="deleteForm" (ngSubmit)="confirmDelete()" class="field" style="gap:10px">
+              <label>Enter the code sent to your phone</label>
+              <input type="text" formControlName="code" placeholder="6-digit code" maxlength="6" inputmode="numeric" />
+              <button type="submit" class="btn-danger" [disabled]="deleteForm.invalid || loading()">
+                {{ loading() ? 'Deleting...' : 'Confirm Delete Account' }}
+              </button>
+            </form>
+          }
+        </div>
+      }
+    </div>
+  </div>
+</div>
