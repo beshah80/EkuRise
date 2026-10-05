@@ -1,0 +1,20 @@
+<main>
+  <router-outlet />
+</main>
+
+@if (showNav()) {
+  <nav class="bottom-nav">
+    <a routerLink="/home" routerLinkActive="active">
+      <span class="nav-icon">🏠</span>
+      <span class="nav-label">Home</span>
+    </a>
+    <a routerLink="/notifications" routerLinkActive="active">
+      <span class="nav-icon">🔔</span>
+      <span class="nav-label">Alerts</span>
+    </a>
+    <a routerLink="/account" routerLinkActive="active">
+      <span class="nav-icon">👤</span>
+      <span class="nav-label">Account</span>
+    </a>
+  </nav>
+}

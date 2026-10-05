@@ -1,0 +1,23 @@
+.page { background: #f8f9fa; min-height: 100vh; }
+.top-bar { background: #0F6B2D; color: white; padding: 14px 16px; display: flex; align-items: center; gap: 10px; }
+.back-btn { background: none; border: none; color: white; font-size: 16px; cursor: pointer; }
+.top-bar h1 { margin: 0; font-size: 18px; }
+.filter-bar { display: flex; gap: 8px; padding: 12px 16px; background: white; border-bottom: 1px solid #eee; }
+.filter-bar input, .filter-bar select { flex: 1; padding: 8px 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 13px; }
+.filter-bar button { background: #0F6B2D; color: white; border: none; padding: 8px 14px; border-radius: 8px; cursor: pointer; font-size: 13px; }
+.list { padding: 12px 16px; display: flex; flex-direction: column; gap: 8px; }
+.loading { text-align: center; padding: 40px; color: #888; }
+.round-row { background: white; border-radius: 10px; padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+.round-left { display: flex; flex-direction: column; gap: 2px; }
+.round-num { font-weight: 700; font-size: 15px; color: #111; }
+.round-left small { color: #888; font-size: 12px; }
+.round-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.pot { font-weight: 700; color: #0F6B2D; font-size: 15px; }
+.round-right small { color: #555; font-size: 12px; }
+.badge { padding: 3px 8px; border-radius: 8px; font-size: 11px; background: #eee; color: #555; }
+.badge.open { background: #e3f2fd; color: #1565c0; }
+.badge.paidout { background: #e8f5e9; color: #0F6B2D; }
+.badge.pending { background: #fff3cd; color: #856404; }
+.empty { text-align: center; color: #aaa; padding: 32px; font-size: 14px; }
+.banner { padding: 12px 16px; border-radius: 8px; margin: 12px 16px; font-size: 14px; }
+.banner.error { background: #fde8e8; color: #c0392b; }

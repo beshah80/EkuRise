@@ -1,0 +1,204 @@
+@startuml EkubCircle Database Schema
+
+!theme plain
+skinparam linetype ortho
+skinparam roundcorner 5
+skinparam class {
+  BackgroundColor #F8F9FA
+  BorderColor #0F6B2D
+  HeaderBackgroundColor #0F6B2D
+  HeaderFontColor white
+  FontName "Segoe UI"
+  AttributeFontSize 11
+}
+
+entity "Users" as users {
+  + Id : INTEGER <<PK>>
+  --
+  PhoneNumber : NVARCHAR(20) <<UK>>
+  Email : NVARCHAR(256)
+  FirstName : NVARCHAR(100)
+  LastName : NVARCHAR(100)
+  Gender : INTEGER
+  JobType : NVARCHAR(100)
+  Location : NVARCHAR(200)
+  ProfilePictureUrl : NVARCHAR(500)
+  IsPhoneVerified : BIT
+  IsPinEnabled : BIT
+  PinHash : NVARCHAR(256)
+  PreferredLanguage : INTEGER
+  ReferralCode : NVARCHAR(20) <<UK>>
+  ReferredById : INTEGER <<FK>>
+  IsAdmin : BIT
+  CreatedAt : DATETIME
+  UpdatedAt : DATETIME
+}
+
+entity "PhoneVerifications" as phone {
+  + Id : INTEGER <<PK>>
+  --
+  UserId : INTEGER <<FK>>
+  PhoneNumber : NVARCHAR(20)
+  VerificationCode : NVARCHAR(6)
+  ExpiresAt : DATETIME
+  IsUsed : BIT
+  CreatedAt : DATETIME
+}
+
+entity "Circles" as circles {
+  + Id : INTEGER <<PK>>
+  --
+  Name : NVARCHAR(200)
+  Contribution : DECIMAL(18,2)
+  MeetingLabel : NVARCHAR(50)
+  Status : INTEGER
+  OrganizerId : INTEGER <<FK>>
+  CreatedAt : DATETIME
+  StartedAt : DATETIME
+  CompletedAt : DATETIME
+}
+
+entity "CircleMembers" as members {
+  + Id : INTEGER <<PK>>
+  --
+  CircleId : INTEGER <<FK>>
+  UserId : INTEGER <<FK>>
+  PayoutOrder : INTEGER
+  HasReceived : BIT
+  JoinedAt : DATETIME
+  ____
+  UNIQUE (CircleId, UserId)
+}
+
+entity "Rounds" as rounds {
+  + Id : INTEGER <<PK>>
+  --
+  CircleId : INTEGER <<FK>>
+  RoundNumber : INTEGER
+  Status : INTEGER
+  ReceiverId : INTEGER <<FK>>
+  OpenedAt : DATETIME
+  PaidOutAt : DATETIME
+  ____
+  UNIQUE (CircleId, RoundNumber)
+}
+
+entity "Payments" as payments {
+  + Id : INTEGER <<PK>>
+  --
+  RoundId : INTEGER <<FK>>
+  UserId : INTEGER <<FK>>
+  HasPaid : BIT
+  PaidAt : DATETIME
+  LateFine : DECIMAL(18,2)
+  ____
+  UNIQUE (RoundId, UserId)
+}
+
+entity "Notifications" as notif {
+  + Id : INTEGER <<PK>>
+  --
+  UserId : INTEGER <<FK>>
+  Type : INTEGER
+  Title : NVARCHAR(200)
+  Body : NVARCHAR(1000)
+  IsRead : BIT
+  RelatedCircleId : INTEGER
+  RelatedRoundId : INTEGER
+  CreatedAt : DATETIME
+}
+
+entity "Feedbacks" as feedback {
+  + Id : INTEGER <<PK>>
+  --
+  UserId : INTEGER <<FK>>
+  Subject : NVARCHAR(200)
+  Message : NVARCHAR(2000)
+  Status : INTEGER
+  CreatedAt : DATETIME
+}
+
+entity "SuccessStories" as stories {
+  + Id : INTEGER <<PK>>
+  --
+  UserId : INTEGER <<FK>>
+  AuthorName : NVARCHAR(150)
+  Content : NVARCHAR(2000)
+  Rating : INTEGER
+  IsApproved : BIT
+  CreatedAt : DATETIME
+}
+
+entity "AccountDeletionRequests" as deletion {
+  + Id : INTEGER <<PK>>
+  --
+  UserId : INTEGER <<FK>>
+  VerificationCode : NVARCHAR(6)
+  ExpiresAt : DATETIME
+  IsConfirmed : BIT
+  CreatedAt : DATETIME
+}
+
+entity "EkubCategories" as categories {
+  + Id : INTEGER <<PK>>
+  --
+  Name : NVARCHAR(100)
+  Description : NVARCHAR(500)
+  IconUrl : NVARCHAR(500)
+  IsActive : BIT
+  CreatedAt : DATETIME
+}
+
+entity "EkubSubCategories" as subcategories {
+  + Id : INTEGER <<PK>>
+  --
+  CategoryId : INTEGER <<FK>>
+  Name : NVARCHAR(200)
+  DailyContribution : DECIMAL(18,2)
+  TotalRounds : INTEGER
+  TotalAmount : DECIMAL(18,2)
+  StartDate : DATETIME
+  TermsAndConditions : TEXT
+  MaxMembers : INTEGER
+  CurrentMemberCount : INTEGER
+  Status : INTEGER
+  CreatedByAdminId : INTEGER <<FK>>
+  CircleId : INTEGER <<FK>>
+  CreatedAt : DATETIME
+}
+
+entity "EkubSubscriptions" as subscriptions {
+  + Id : INTEGER <<PK>>
+  --
+  UserId : INTEGER <<FK>>
+  SubCategoryId : INTEGER <<FK>>
+  AgreedToTerms : BIT
+  JoinedAt : DATETIME
+  ____
+  UNIQUE (UserId, SubCategoryId)
+}
+
+' ===== Relationships =====
+
+users ||--o{ phone : "verifies"
+users ||--o{ circles : "organizes"
+users ||--o{ members : "joins as"
+users ||--o{ notif : "receives"
+users ||--o{ feedback : "submits"
+users ||--o{ stories : "shares"
+users ||--o{ deletion : "requests deletion"
+users ||--o{ subcategories : "creates (admin)"
+users ||--o{ subscriptions : "subscribes"
+users }o--o| users : "referred by"
+
+categories ||--o{ subcategories : "has"
+subcategories ||--o{ subscriptions : "collects"
+subcategories }o--o| circles : "creates when started"
+
+circles ||--o{ members : "has"
+circles ||--o{ rounds : "runs"
+
+rounds ||--o{ payments : "tracks"
+rounds }o--o| users : "received by"
+
+@enduml

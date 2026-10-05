@@ -1,0 +1,21 @@
+<div class="auth-screen">
+  <h1>Verify Phone</h1>
+  <p>Enter the 6-digit code sent to {{ phoneNumber }}</p>
+
+  @if (demoCode) {
+    <div class="banner info">Demo code: {{ demoCode }}</div>
+  }
+  @if (error()) {
+    <div class="banner error">{{ error() }}</div>
+  }
+
+  <form [formGroup]="form" (ngSubmit)="verify()" class="otp-form">
+    <input type="text" formControlName="code" maxlength="6" placeholder="000000" class="otp-input" />
+    @if (form.controls.code.touched && form.controls.code.invalid) {
+      <small class="error-text">Enter the 6-digit code</small>
+    }
+    <button type="submit" class="btn-primary" [disabled]="loading() || form.invalid">
+      {{ loading() ? 'Verifying...' : 'Verify' }}
+    </button>
+  </form>
+</div>

@@ -1,0 +1,141 @@
+<div class="page">
+  <header class="top-bar">
+    <button class="back-btn" (click)="goBack()">← Back</button>
+    <h1>{{ circle()?.name || 'Circle' }}</h1>
+    @if (circle()) {
+      <span class="badge" [class]="statusClass(circle()!.status)">{{ statusLabel(circle()!.status) }}</span>
+    }
+  </header>
+
+  @if (loading()) { <div class="loading">Loading...</div> }
+
+  @if (error()) { <div class="banner error">{{ error() }}</div> }
+  @if (success()) { <div class="banner success">{{ success() }}</div> }
+
+  @if (circle()) {
+    <div class="content">
+      <div class="card info-row">
+        <span>{{ circle()!.contribution }} ETB / {{ circle()!.meetingLabel }}</span>
+        <span>{{ circle()!.memberCount }} members</span>
+        <span>Organizer: {{ circle()!.organizerName }}</span>
+      </div>
+
+      <!-- FORMING STATE -->
+      @if (circle()!.status === 0) {
+        <div class="card">
+          <h3>Members</h3>
+          @for (m of circle()!.members; track m.userId) {
+            <div class="member-row">
+              <div class="avatar-name">
+                <div class="avatar">{{ m.fullName[0] }}</div>
+                <div>
+                  <div class="member-name">{{ m.fullName }}</div>
+                  <small>{{ m.phoneNumber }}</small>
+                </div>
+              </div>
+              @if (isOrganizer() && m.userId !== currentUserId) {
+                <button class="btn-remove" (click)="removeMember(m.userId)">Remove</button>
+              }
+            </div>
+          }
+        </div>
+
+        @if (isOrganizer()) {
+          <div class="card">
+            <h3>Add Member</h3>
+            <form [formGroup]="addMemberForm" (ngSubmit)="addMember()" class="add-form">
+              <input type="tel" formControlName="phoneNumber" placeholder="Member's phone number" />
+              <button type="submit" class="btn-primary" [disabled]="addMemberForm.invalid">Add</button>
+            </form>
+          </div>
+
+          @if (!showConfirm()) {
+            <button class="btn-primary btn-start" (click)="showConfirm.set(true)"
+              [disabled]="circle()!.memberCount < 2">
+              Start Circle
+            </button>
+          } @else {
+            <div class="card confirm">
+              <p>This will lock the member list and set the payout order. Are you sure?</p>
+              <div class="confirm-btns">
+                <button class="btn-primary" (click)="startCircle()">Yes, Start</button>
+                <button class="btn-ghost" (click)="showConfirm.set(false)">Cancel</button>
+              </div>
+            </div>
+          }
+        }
+      }
+
+      <!-- ACTIVE STATE -->
+      @if (circle()!.status === 1) {
+        @if (currentRound()) {
+          <div class="card round-card">
+            <div class="round-header">
+              <span>Round {{ currentRound()!.roundNumber }} of {{ currentRound()!.totalRounds }}</span>
+              <span class="pot">{{ currentRound()!.pot.toLocaleString() }} ETB</span>
+            </div>
+            <div class="progress-row">
+              <small>{{ currentRound()!.paidCount }}/{{ currentRound()!.totalMembers }} paid</small>
+              <div class="progress">
+                <div class="bar" [style.width.%]="(currentRound()!.paidCount / currentRound()!.totalMembers) * 100"></div>
+              </div>
+            </div>
+            <button class="btn-outline" (click)="viewCurrentRound()">View Round Details</button>
+          </div>
+        }
+
+        <div class="card my-status">
+          <h3>My Status</h3>
+          <div class="status-rows">
+            <div class="status-row">
+              <span>This round payment</span>
+              @if (myPayment()?.hasPaid) {
+                <span class="badge active">Paid ✓</span>
+              } @else {
+                <span class="badge forming">Unpaid</span>
+              }
+            </div>
+            <div class="status-row">
+              <span>Pot received</span>
+              @if (myMembership()?.hasReceived) {
+                <span class="badge active">Yes ✓</span>
+              } @else {
+                <span class="badge">Not yet</span>
+              }
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="section-header">
+            <h3>Members</h3>
+            <button class="btn-link" (click)="viewHistory()">Round History</button>
+          </div>
+          @for (m of circle()!.members; track m.userId) {
+            <div class="member-row">
+              <div class="avatar-name">
+                <div class="avatar">{{ m.fullName[0] }}</div>
+                <div>
+                  <div class="member-name">#{{ m.payoutOrder }} {{ m.fullName }}</div>
+                  <small>{{ m.phoneNumber }}</small>
+                </div>
+              </div>
+              @if (m.hasReceived) {
+                <span class="badge active small">Won</span>
+              }
+            </div>
+          }
+        </div>
+      }
+
+      <!-- COMPLETED STATE -->
+      @if (circle()!.status === 2) {
+        <div class="card">
+          <div class="completed-header">🎉 Circle Complete!</div>
+          <p class="completed-msg">All members have received the pot.</p>
+          <button class="btn-outline" (click)="viewHistory()">View Summary</button>
+        </div>
+      }
+    </div>
+  }
+</div>

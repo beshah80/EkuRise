@@ -1,0 +1,75 @@
+<div class="page">
+  <header class="top-bar">
+    <button class="back-btn" (click)="goBack()">← Back</button>
+    <h1>Ekub Detail</h1>
+  </header>
+
+  @if (loading()) {
+    <div class="loading">Loading...</div>
+  }
+
+  @if (sub()) {
+    <div class="content">
+      <div class="card">
+        <p class="cat-label">{{ sub()!.categoryName }}</p>
+        <h2>{{ sub()!.name }}</h2>
+
+        <div class="stats-grid">
+          <div class="stat">
+            <span class="stat-val">{{ sub()!.dailyContribution }} ETB</span>
+            <span class="stat-lbl">Daily Contribution</span>
+          </div>
+          <div class="stat">
+            <span class="stat-val">{{ sub()!.totalRounds }}</span>
+            <span class="stat-lbl">Total Rounds</span>
+          </div>
+          <div class="stat highlight">
+            <span class="stat-val">{{ sub()!.totalAmount.toLocaleString() }} ETB</span>
+            <span class="stat-lbl">Pot Amount</span>
+          </div>
+          <div class="stat">
+            <span class="stat-val">{{ formatDate(sub()!.startDate) }}</span>
+            <span class="stat-lbl">Start Date</span>
+          </div>
+          <div class="stat">
+            <span class="stat-val">{{ sub()!.currentMemberCount }}/{{ sub()!.maxMembers }}</span>
+            <span class="stat-lbl">Members Joined</span>
+          </div>
+          <div class="stat">
+            <span class="stat-val badge" [class]="statusClass(sub()!.status)">{{ statusLabel(sub()!.status) }}</span>
+            <span class="stat-lbl">Status</span>
+          </div>
+        </div>
+      </div>
+
+      @if (!sub()!.hasJoined && sub()!.status === 0) {
+        <div class="card">
+          <h3>Terms & Conditions</h3>
+          <div class="terms-box">{{ sub()!.termsAndConditions }}</div>
+          <label class="agree-row">
+            <input type="checkbox" [(ngModel)]="agreed" />
+            I have read and agree to the terms and conditions
+          </label>
+
+          @if (success()) {
+            <div class="banner success">{{ success() }}</div>
+          }
+          @if (error()) {
+            <div class="banner error">{{ error() }}</div>
+          }
+
+          <button class="btn-primary" [disabled]="!agreed || loading()" (click)="join()">
+            {{ loading() ? 'Joining...' : 'Join Ekub' }}
+          </button>
+        </div>
+      } @else if (sub()!.hasJoined) {
+        <div class="banner success">You have already joined this Ekub!</div>
+        @if (sub()!.circleId) {
+          <button class="btn-primary" (click)="viewCircle()">View Circle</button>
+        }
+      } @else {
+        <div class="banner info">This Ekub is {{ statusLabel(sub()!.status) }} and not open for joining.</div>
+      }
+    </div>
+  }
+</div>

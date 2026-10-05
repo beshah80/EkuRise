@@ -1,0 +1,84 @@
+.home-page { padding: 0 0 16px; }
+
+.page-header {
+  background: #0F6B2D; color: white; padding: 16px 20px;
+  position: sticky; top: 0; z-index: 100;
+}
+.page-header h1 { margin: 0; font-size: 22px; }
+
+.catalog-section, .circles-section { padding: 16px 16px 0; }
+
+h2 { font-size: 18px; color: #111; margin: 0 0 12px; }
+
+.category-chips {
+  display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px;
+  scrollbar-width: none;
+}
+.category-chips::-webkit-scrollbar { display: none; }
+
+.chip {
+  padding: 6px 16px; border-radius: 20px; border: 1px solid #0F6B2D;
+  background: white; color: #0F6B2D; font-size: 13px;
+  white-space: nowrap; cursor: pointer;
+}
+.chip.active { background: #0F6B2D; color: white; }
+
+.card-grid { display: flex; flex-direction: column; gap: 12px; margin-top: 12px; }
+
+.ekub-card {
+  background: white; border-radius: 12px; padding: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08); cursor: pointer;
+  border-left: 4px solid #0F6B2D;
+}
+.ekub-card:active { opacity: 0.85; }
+
+.card-label { font-size: 11px; color: #0F6B2D; font-weight: 600; text-transform: uppercase; margin-bottom: 4px; }
+
+.ekub-card h3 { margin: 0 0 10px; font-size: 17px; color: #111; }
+
+.card-stats {
+  display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px;
+}
+.card-stats span {
+  background: #f0f9f3; color: #0F6B2D; padding: 4px 10px;
+  border-radius: 20px; font-size: 12px; font-weight: 600;
+}
+
+.card-meta { font-size: 13px; color: #666; margin-bottom: 10px; }
+
+.card-footer { display: flex; justify-content: space-between; align-items: center; }
+
+.members-bar { flex: 1; margin-right: 12px; }
+.members-bar small { font-size: 12px; color: #888; }
+.progress { height: 4px; background: #eee; border-radius: 2px; margin-top: 4px; }
+.bar { height: 100%; background: #0F6B2D; border-radius: 2px; transition: width 0.3s; }
+
+.badge {
+  padding: 5px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;
+  background: #eee; color: #555;
+}
+.badge.joined { background: #e8f5e9; color: #0F6B2D; }
+.badge.open { background: #0F6B2D; color: white; cursor: pointer; }
+
+.section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.section-header h2 { margin: 0; }
+
+.btn-outline {
+  border: 1px solid #0F6B2D; background: white; color: #0F6B2D;
+  padding: 8px 14px; border-radius: 8px; font-size: 13px; cursor: pointer;
+}
+
+.circle-card {
+  background: white; border-radius: 12px; padding: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06); margin-bottom: 10px; cursor: pointer;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.circle-card h3 { margin: 0; font-size: 16px; color: #111; }
+.circle-info { display: flex; justify-content: space-between; align-items: center; }
+.circle-card small { color: #888; font-size: 12px; }
+
+.empty { color: #aaa; font-size: 14px; text-align: center; padding: 24px 0; }
+
+.banner { padding: 12px 16px; border-radius: 8px; margin-bottom: 12px; font-size: 14px; }
+.banner.error { background: #fde8e8; color: #c0392b; }
+.circles-section { margin-top: 8px; }

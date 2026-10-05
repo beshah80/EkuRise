@@ -1,0 +1,80 @@
+<div class="auth-screen">
+  <div class="auth-header">
+    <h1>Create Account</h1>
+    <p>Join EkubCircle and start saving together.</p>
+  </div>
+
+  @if (error()) {
+    <div class="banner error">{{ error() }}</div>
+  }
+
+  <form [formGroup]="form" class="auth-form" (ngSubmit)="submit()">
+    <div class="field">
+      <label>Phone Number</label>
+      <input type="tel" formControlName="phoneNumber" placeholder="09xxxxxxxx" />
+      @if (form.controls.phoneNumber.touched && form.controls.phoneNumber.invalid) {
+        <small class="error-text">Phone number is required</small>
+      }
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label>First Name</label>
+        <input type="text" formControlName="firstName" />
+        @if (form.controls.firstName.touched && form.controls.firstName.invalid) {
+          <small class="error-text">Required</small>
+        }
+      </div>
+      <div class="field">
+        <label>Last Name</label>
+        <input type="text" formControlName="lastName" />
+        @if (form.controls.lastName.touched && form.controls.lastName.invalid) {
+          <small class="error-text">Required</small>
+        }
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Gender</label>
+      <select formControlName="gender">
+        @for (g of genders; track g; let i = $index) {
+          <option [value]="i">{{ g }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Job Type</label>
+      <select formControlName="jobType">
+        <option value="">Select your job</option>
+        @for (job of jobs; track job) {
+          <option [value]="job">{{ job }}</option>
+        }
+      </select>
+      @if (form.controls.jobType.touched && form.controls.jobType.invalid) {
+        <small class="error-text">Required</small>
+      }
+    </div>
+
+    <div class="field">
+      <label>Location</label>
+      <input type="text" formControlName="location" placeholder="Your city" />
+      @if (form.controls.location.touched && form.controls.location.invalid) {
+        <small class="error-text">Required</small>
+      }
+    </div>
+
+    <div class="field">
+      <label>Referral Code (optional)</label>
+      <input type="text" formControlName="referralCode" placeholder="EK-XXXX-XXXX" />
+    </div>
+
+    <button type="submit" class="btn-primary" [disabled]="loading() || form.invalid">
+      {{ loading() ? 'Creating account...' : 'Register' }}
+    </button>
+  </form>
+
+  <p class="auth-footer">
+    Already have an account? <a routerLink="/login">Login</a>
+  </p>
+</div>

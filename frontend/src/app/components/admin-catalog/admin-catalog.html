@@ -1,0 +1,61 @@
+<div class="page">
+  <header class="top-bar">
+    <button class="back-btn" (click)="goBack()">← Back</button>
+    <h1>Manage Catalog</h1>
+  </header>
+
+  <div class="content">
+    @if (error()) { <div class="banner error">{{ error() }}</div> }
+    @if (success()) { <div class="banner success">{{ success() }}</div> }
+
+    <!-- Create Category -->
+    <div class="card">
+      <h3>Add Category</h3>
+      <form [formGroup]="catForm" (ngSubmit)="createCategory()" class="form">
+        <input type="text" formControlName="name" placeholder="e.g. Driver Equb" />
+        <input type="text" formControlName="description" placeholder="Description (optional)" />
+        <button type="submit" class="btn-sm" [disabled]="catForm.invalid">Add Category</button>
+      </form>
+    </div>
+
+    <!-- Categories + Sub-categories -->
+    @for (cat of categories(); track cat.id) {
+      <div class="card">
+        <h3>{{ cat.name }}</h3>
+
+        @for (sub of getSubCats(cat.id); track sub.id) {
+          <div class="sub-row">
+            <div>
+              <strong>{{ sub.name }}</strong>
+              <small>{{ sub.dailyContribution }} ETB/day · {{ sub.totalRounds }} rounds · {{ sub.totalAmount.toLocaleString() }} ETB total</small>
+              <small>Members: {{ sub.currentMemberCount }}/{{ sub.maxMembers }} · {{ statusLabel(sub.status) }}</small>
+            </div>
+            @if (sub.status === 0 || sub.status === 1) {
+              <button class="btn-sm start" (click)="startEkub(sub.id)">Start Ekub</button>
+            } @else if (sub.circleId) {
+              <button class="btn-sm view" [routerLink]="['/circles', sub.circleId]">View Circle</button>
+            }
+          </div>
+        }
+
+        <!-- Add Sub-category form -->
+        @if (activeCatForm() === cat.id) {
+          <form [formGroup]="subForm" (ngSubmit)="createSubCategory(cat.id)" class="form sub-form">
+            <input type="text" formControlName="name" placeholder="e.g. Daily 300 ETB" />
+            <input type="number" formControlName="dailyContribution" placeholder="Daily contribution (ETB)" min="1" />
+            <input type="number" formControlName="totalRounds" placeholder="Total rounds (= member slots)" min="2" />
+            <input type="date" formControlName="startDate" />
+            <textarea formControlName="termsAndConditions" rows="4" placeholder="Terms and conditions..."></textarea>
+            <input type="number" formControlName="maxMembers" placeholder="Max members" min="2" />
+            <div class="form-row">
+              <button type="submit" class="btn-sm" [disabled]="subForm.invalid">Save Sub-category</button>
+              <button type="button" class="btn-sm cancel" (click)="activeCatForm.set(null)">Cancel</button>
+            </div>
+          </form>
+        } @else {
+          <button class="btn-link" (click)="activeCatForm.set(cat.id)">+ Add Sub-category</button>
+        }
+      </div>
+    }
+  </div>
+</div>

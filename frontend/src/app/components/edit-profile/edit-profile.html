@@ -1,0 +1,54 @@
+<div class="page">
+  <header class="top-bar">
+    <button class="back-btn" (click)="cancel()">← Back</button>
+    <h1>Edit Profile</h1>
+  </header>
+
+  <div class="content">
+    @if (error()) { <div class="banner error">{{ error() }}</div> }
+    @if (success()) { <div class="banner success">{{ success() }}</div> }
+
+    <div class="card">
+      <form [formGroup]="form" (ngSubmit)="submit()" class="form">
+        <div class="row">
+          <div class="field">
+            <label>First Name</label>
+            <input type="text" formControlName="firstName" />
+          </div>
+          <div class="field">
+            <label>Last Name</label>
+            <input type="text" formControlName="lastName" />
+          </div>
+        </div>
+        <div class="field">
+          <label>Email (optional)</label>
+          <input type="email" formControlName="email" />
+        </div>
+        <div class="field">
+          <label>Gender</label>
+          <select formControlName="gender">
+            @for (g of genders; track g; let i = $index) {
+              <option [value]="i">{{ g }}</option>
+            }
+          </select>
+        </div>
+        <div class="field">
+          <label>Job Type</label>
+          <select formControlName="jobType">
+            @for (job of jobs; track job) {
+              <option [value]="job">{{ job }}</option>
+            }
+          </select>
+        </div>
+        <div class="field">
+          <label>Location</label>
+          <input type="text" formControlName="location" />
+        </div>
+        <button type="submit" class="btn-primary" [disabled]="loading()">
+          {{ loading() ? 'Saving...' : 'Save Changes' }}
+        </button>
+        <button type="button" class="btn-ghost" (click)="cancel()">Cancel</button>
+      </form>
+    </div>
+  </div>
+</div>

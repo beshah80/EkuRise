@@ -1,0 +1,85 @@
+<div class="page">
+  @if (loading()) { <div class="loading">Loading...</div> }
+
+  @if (profile()) {
+    <div class="profile-header">
+      <div class="avatar-big">{{ profile()!.firstName[0] }}{{ profile()!.lastName[0] }}</div>
+      <h2>{{ profile()!.firstName }} {{ profile()!.lastName }}</h2>
+      <p>{{ profile()!.phoneNumber }}</p>
+      <small>{{ profile()!.jobType }} · {{ profile()!.location }}</small>
+      <br />
+      <button class="edit-btn" routerLink="/account/edit">Edit Profile</button>
+    </div>
+
+    <div class="menu-section">
+      <div class="group-label">Settings</div>
+      <div class="menu-group">
+        <div class="menu-item" routerLink="/account/security">
+          <span class="menu-icon">🔒</span>
+          <span class="menu-label">Privacy & Security</span>
+          <span class="chevron">›</span>
+        </div>
+        <div class="menu-item" routerLink="/account/language">
+          <span class="menu-icon">🌐</span>
+          <span class="menu-label">Language</span>
+          <span class="chevron">›</span>
+        </div>
+      </div>
+
+      <div class="group-label">Ekub</div>
+      <div class="menu-group">
+        <div class="menu-item" routerLink="/account/my-ekubs">
+          <span class="menu-icon">💰</span>
+          <span class="menu-label">My Ekubs / History</span>
+          <span class="chevron">›</span>
+        </div>
+      </div>
+
+      @if (profile()!.isAdmin) {
+        <div class="group-label">Admin</div>
+        <div class="menu-group">
+          <div class="menu-item" routerLink="/admin/catalog">
+            <span class="menu-icon">⚙️</span>
+            <span class="menu-label">Manage Catalog</span>
+            <span class="chevron">›</span>
+          </div>
+        </div>
+      }
+
+      <div class="group-label">Support</div>
+      <div class="menu-group">
+        <div class="menu-item" routerLink="/account/feedback">
+          <span class="menu-icon">💬</span>
+          <span class="menu-label">Questions & Feedback</span>
+          <span class="chevron">›</span>
+        </div>
+        <div class="menu-item" routerLink="/account/stories">
+          <span class="menu-icon">⭐</span>
+          <span class="menu-label">Success Stories</span>
+          <span class="chevron">›</span>
+        </div>
+        <div class="menu-item" routerLink="/account/about">
+          <span class="menu-icon">ℹ️</span>
+          <span class="menu-label">About Us</span>
+          <span class="chevron">›</span>
+        </div>
+      </div>
+
+      <div class="group-label">Share</div>
+      <div class="menu-group">
+        <div class="menu-item" routerLink="/account/referral">
+          <span class="menu-icon">🎁</span>
+          <span class="menu-label">Referral Code: {{ profile()!.referralCode }}</span>
+          <span class="chevron">›</span>
+        </div>
+      </div>
+
+      <div class="menu-group">
+        <div class="menu-item danger" (click)="logout()">
+          <span class="menu-icon">🚪</span>
+          <span class="menu-label">Logout</span>
+        </div>
+      </div>
+    </div>
+  }
+</div>

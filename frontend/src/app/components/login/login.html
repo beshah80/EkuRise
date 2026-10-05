@@ -1,0 +1,40 @@
+<div class="auth-screen">
+  <div class="auth-header">
+    <h1>EkubCircle</h1>
+    <p>Welcome back. Sign in to your account.</p>
+  </div>
+
+  @if (error()) {
+    <div class="banner" [class.error]="!otpSent()" [class.info]="otpSent()">{{ error() }}</div>
+  }
+
+  <form [formGroup]="form" class="auth-form">
+    <div class="field">
+      <label>Phone Number</label>
+      <input type="tel" formControlName="phoneNumber" placeholder="09xxxxxxxx" />
+      @if (form.controls.phoneNumber.touched && form.controls.phoneNumber.invalid) {
+        <small class="error-text">Enter a valid phone number</small>
+      }
+    </div>
+
+    @if (showPin()) {
+      <div class="field">
+        <label>PIN</label>
+        <input type="password" formControlName="pin" placeholder="Enter your PIN" maxlength="6" />
+      </div>
+      <button type="button" class="btn-primary" (click)="submitPin()" [disabled]="loading() || form.invalid">
+        {{ loading() ? 'Signing in...' : 'Login with PIN' }}
+      </button>
+      <button type="button" class="btn-link" (click)="togglePin()">Login with code instead</button>
+    } @else {
+      <button type="button" class="btn-primary" (click)="submitOtp()" [disabled]="loading() || form.controls.phoneNumber.invalid">
+        {{ loading() ? 'Sending code...' : 'Send Login Code' }}
+      </button>
+      <button type="button" class="btn-link" (click)="togglePin()">Login with PIN instead</button>
+    }
+  </form>
+
+  <p class="auth-footer">
+    Don't have an account? <a routerLink="/register">Register</a>
+  </p>
+</div>

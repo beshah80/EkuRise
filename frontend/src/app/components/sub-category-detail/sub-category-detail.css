@@ -1,0 +1,28 @@
+.page { background: #f8f9fa; min-height: 100vh; }
+.top-bar { background: #0F6B2D; color: white; padding: 14px 16px; display: flex; align-items: center; gap: 12px; }
+.back-btn { background: none; border: none; color: white; font-size: 16px; cursor: pointer; }
+.top-bar h1 { margin: 0; font-size: 18px; }
+.content { padding: 16px; display: flex; flex-direction: column; gap: 16px; }
+.card { background: white; border-radius: 12px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); }
+.cat-label { font-size: 11px; color: #0F6B2D; font-weight: 700; text-transform: uppercase; margin: 0 0 4px; }
+.card h2 { margin: 0 0 16px; font-size: 20px; color: #111; }
+.card h3 { margin: 0 0 12px; font-size: 16px; color: #333; }
+.stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.stat { display: flex; flex-direction: column; gap: 2px; }
+.stat-val { font-size: 16px; font-weight: 700; color: #111; }
+.stat.highlight .stat-val { color: #0F6B2D; font-size: 18px; }
+.stat-lbl { font-size: 11px; color: #888; }
+.terms-box { background: #f8f9fa; border-radius: 8px; padding: 12px; font-size: 13px; color: #555; max-height: 180px; overflow-y: auto; margin-bottom: 14px; line-height: 1.6; }
+.agree-row { display: flex; align-items: center; gap: 10px; font-size: 14px; color: #333; margin-bottom: 16px; cursor: pointer; }
+.btn-primary { width: 100%; background: #0F6B2D; color: white; border: none; padding: 14px; border-radius: 8px; font-size: 16px; cursor: pointer; }
+.btn-primary:disabled { background: #aaa; }
+.banner { padding: 12px 16px; border-radius: 8px; font-size: 14px; text-align: center; }
+.banner.success { background: #e8f5e9; color: #0F6B2D; }
+.banner.error { background: #fde8e8; color: #c0392b; }
+.banner.info { background: #e3f2fd; color: #1565c0; }
+.badge { padding: 4px 10px; border-radius: 10px; font-size: 12px; }
+.badge.open { background: #e8f5e9; color: #0F6B2D; }
+.badge.full { background: #fde8e8; color: #c0392b; }
+.badge.started { background: #ede7f6; color: #6a1b9a; }
+.badge.completed { background: #eee; color: #555; }
+.loading { text-align: center; padding: 40px; color: #888; }

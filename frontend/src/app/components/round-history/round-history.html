@@ -1,0 +1,38 @@
+<div class="page">
+  <header class="top-bar">
+    <button class="back-btn" (click)="goBack()">← Back</button>
+    <h1>Round History</h1>
+  </header>
+
+  <div class="filter-bar">
+    <input type="number" [(ngModel)]="filterRound" placeholder="Round #" min="1" />
+    <select [(ngModel)]="filterStatus">
+      <option value="">All Status</option>
+      <option value="0">Pending</option>
+      <option value="1">Open</option>
+      <option value="2">Paid Out</option>
+    </select>
+    <button (click)="loadRounds()">Filter</button>
+  </div>
+
+  @if (loading()) { <div class="loading">Loading...</div> }
+  @if (error()) { <div class="banner error">{{ error() }}</div> }
+
+  <div class="list">
+    @for (r of rounds(); track r.id) {
+      <div class="round-row" (click)="viewRound(r.id)">
+        <div class="round-left">
+          <span class="round-num">Round {{ r.roundNumber }}</span>
+          <small>{{ r.paidCount }}/{{ r.totalMembers }} paid</small>
+        </div>
+        <div class="round-right">
+          <span class="pot">{{ r.pot.toLocaleString() }} ETB</span>
+          @if (r.receiverName) { <small>{{ r.receiverName }}</small> }
+          <span class="badge" [class]="statusClass(r.status)">{{ statusLabel(r.status) }}</span>
+        </div>
+      </div>
+    } @empty {
+      <p class="empty">No rounds found.</p>
+    }
+  </div>
+</div>

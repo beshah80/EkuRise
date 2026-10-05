@@ -1,0 +1,26 @@
+.page { background: #f8f9fa; min-height: 100vh; }
+.top-bar { background: #0F6B2D; color: white; padding: 14px 16px; display: flex; align-items: center; gap: 12px; }
+.back-btn { background: none; border: none; color: white; font-size: 16px; cursor: pointer; }
+.top-bar h1 { margin: 0; font-size: 18px; }
+.content { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.card { background: white; border-radius: 12px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); }
+.card h3 { margin: 0 0 12px; color: #0F6B2D; font-size: 16px; }
+.form { display: flex; flex-direction: column; gap: 8px; }
+.form input, .form textarea { padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; }
+.form input:focus, .form textarea:focus { outline: none; border-color: #0F6B2D; }
+.form textarea { resize: vertical; font-family: inherit; }
+.form-row { display: flex; gap: 8px; }
+.btn-sm { background: #0F6B2D; color: white; border: none; padding: 8px 14px; border-radius: 8px; font-size: 13px; cursor: pointer; }
+.btn-sm:disabled { background: #aaa; }
+.btn-sm.cancel { background: #eee; color: #555; }
+.btn-sm.start { background: #F2B705; color: #222; }
+.btn-sm.view { background: #e3f2fd; color: #1565c0; }
+.btn-link { background: none; border: none; color: #0F6B2D; font-size: 14px; cursor: pointer; padding: 8px 0; }
+.sub-row { display: flex; justify-content: space-between; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid #f0f0f0; gap: 8px; }
+.sub-row > div { display: flex; flex-direction: column; gap: 2px; }
+.sub-row strong { font-size: 14px; color: #111; }
+.sub-row small { font-size: 12px; color: #666; }
+.sub-form { border: 1px solid #e8f5e9; border-radius: 8px; padding: 12px; background: #f8fff9; margin-top: 8px; }
+.banner { padding: 12px 16px; border-radius: 8px; margin-bottom: 8px; font-size: 14px; }
+.banner.error { background: #fde8e8; color: #c0392b; }
+.banner.success { background: #e8f5e9; color: #0F6B2D; }

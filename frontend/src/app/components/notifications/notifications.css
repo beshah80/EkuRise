@@ -1,0 +1,15 @@
+.page { background: #f8f9fa; min-height: 100vh; }
+.top-bar { background: #0F6B2D; color: white; padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; }
+.top-bar h1 { margin: 0; font-size: 18px; }
+.mark-all { background: none; border: none; color: rgba(255,255,255,0.85); font-size: 13px; cursor: pointer; }
+.loading { text-align: center; padding: 40px; color: #888; }
+.list { padding: 8px 0; }
+.notif-item { display: flex; gap: 12px; padding: 14px 16px; background: white; border-bottom: 1px solid #f0f0f0; cursor: pointer; }
+.notif-item.unread { background: #f0f9f3; }
+.notif-icon { font-size: 22px; flex-shrink: 0; }
+.notif-body { flex: 1; }
+.notif-title { font-weight: 600; font-size: 14px; color: #111; margin-bottom: 2px; }
+.notif-text { font-size: 13px; color: #555; line-height: 1.4; }
+.notif-time { font-size: 11px; color: #aaa; margin-top: 4px; }
+.dot { width: 8px; height: 8px; background: #0F6B2D; border-radius: 50%; margin-top: 6px; flex-shrink: 0; }
+.empty { text-align: center; color: #aaa; padding: 48px 24px; font-size: 14px; }

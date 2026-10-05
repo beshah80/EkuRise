@@ -1,0 +1,86 @@
+<div class="page">
+  <header class="top-bar">
+    <button class="back-btn" (click)="goBack()">← Back</button>
+    <h1>Round {{ round()?.roundNumber }} of {{ round()?.totalRounds }}</h1>
+    @if (round()) {
+      <span class="badge" [class]="statusClass(round()!.status)">{{ statusLabel(round()!.status) }}</span>
+    }
+  </header>
+
+  @if (loading()) { <div class="loading">Loading...</div> }
+  @if (error()) { <div class="banner error">{{ error() }}</div> }
+
+  @if (payoutResult()) {
+    <div class="banner success">
+      Round {{ payoutResult()!.roundNumber }} paid out to {{ payoutResult()!.receiverName }} — {{ payoutResult()!.potAmount.toLocaleString() }} ETB 🎉
+    </div>
+  }
+
+  @if (round()) {
+    <div class="content">
+      <div class="card pot-card">
+        <div class="pot-amount">{{ round()!.pot.toLocaleString() }} ETB</div>
+        <div class="pot-label">Total Pot</div>
+        <small>{{ round()!.paidCount }}/{{ round()!.totalMembers }} paid · {{ round()!.contribution }} ETB each</small>
+
+        @if (round()!.status === 2) {
+          <div class="receiver">Received by: <strong>{{ round()!.receiverName }}</strong> on {{ formatDate(round()!.paidOutAt!) }}</div>
+        }
+      </div>
+
+      <div class="card">
+        <h3>Payments</h3>
+        <table class="payments-table">
+          <thead>
+            <tr><th>Member</th><th>Paid</th><th>Date</th><th>Fine</th></tr>
+          </thead>
+          <tbody>
+            @for (p of round()!.payments; track p.userId) {
+              <tr>
+                <td class="member-cell">
+                  <div class="avatar">{{ p.memberName[0] }}</div>
+                  {{ p.memberName }}
+                </td>
+                <td>
+                  @if (round()!.status === 1 && isOrganizer) {
+                    <input type="checkbox" [checked]="p.hasPaid"
+                      (change)="togglePayment(p.userId, $any($event.target).checked)" />
+                  } @else {
+                    <span class="badge" [class.active]="p.hasPaid">{{ p.hasPaid ? 'Yes' : 'No' }}</span>
+                  }
+                </td>
+                <td>{{ p.paidAt ? formatDate(p.paidAt) : '-' }}</td>
+                <td>{{ p.lateFine > 0 ? p.lateFine + ' ETB' : '-' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      @if (round()!.status === 1 && isOrganizer) {
+        <div class="actions">
+          @if (!confirmPayout()) {
+            <button class="btn-primary" [disabled]="!allPaid()" (click)="confirmPayout.set(true)">
+              Pay Out to Next Member
+            </button>
+            @if (!allPaid()) {
+              <small class="hint">All members must be marked paid before payout</small>
+            }
+          } @else {
+            <div class="card confirm">
+              <p>Pay out {{ round()!.pot.toLocaleString() }} ETB to the next member in line?</p>
+              <div class="confirm-btns">
+                <button class="btn-primary" (click)="payout()">Confirm Payout</button>
+                <button class="btn-ghost" (click)="confirmPayout.set(false)">Cancel</button>
+              </div>
+            </div>
+          }
+        </div>
+      }
+
+      @if (round()!.status === 2 && isOrganizer) {
+        <button class="btn-primary btn-full" (click)="openNext()">Open Next Round</button>
+      }
+    </div>
+  }
+</div>
