@@ -46,7 +46,7 @@ export class CircleDetail {
       next: (c) => {
         this.circle.set(c);
         this.loading.set(false);
-        this.isOrganizer.set(this.currentUserId !== 0);
+        this.isOrganizer.set(c.organizerId === this.currentUserId);
         if (c.status === 1) this.loadCurrentRound();
       },
       error: () => { this.error.set('Circle not found'); this.loading.set(false); }

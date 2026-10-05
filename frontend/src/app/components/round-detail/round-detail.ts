@@ -3,6 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { RoundService } from '../../services/round.service';
 import { TokenService } from '../../services/token.service';
+import { CircleService } from '../../services/circle.service';
 import { RoundDetail as RoundDetailModel, PayoutResult } from '../../models/models';
 
 @Component({
@@ -17,6 +18,7 @@ export class RoundDetail {
   private router = inject(Router);
   private roundService = inject(RoundService);
   private tokenService = inject(TokenService);
+  private circleService = inject(CircleService);
 
   round = signal<RoundDetailModel | null>(null);
   loading = signal(true);
@@ -25,11 +27,16 @@ export class RoundDetail {
   confirmPayout = signal(false);
   payoutResult = signal<PayoutResult | null>(null);
   circleId = 0;
-  isOrganizer = true;
+  isOrganizer = false;
 
   ngOnInit() {
     this.circleId = Number(this.route.snapshot.paramMap.get('id'));
     const roundId = Number(this.route.snapshot.paramMap.get('roundId'));
+    const userId = this.tokenService.getUserId() || 0;
+    this.circleService.getCircleById(this.circleId).subscribe({
+      next: (c) => { this.isOrganizer = c.organizerId === userId; },
+      error: () => {}
+    });
     this.loadRound(roundId);
   }
 

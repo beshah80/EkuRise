@@ -245,6 +245,7 @@ export interface CircleDetail {
   contribution: number;
   meetingLabel: string;
   status: number;
+  organizerId: number;
   organizerName: string;
   currentRoundNumber?: number;
   memberCount: number;
@@ -279,7 +280,7 @@ export interface RoundDetail {
   totalMembers: number;
   receiverId?: number;
   receiverName?: string;
-  openedAt: string;
+  openedAt?: string;
   paidOutAt?: string;
   payments: PaymentDto[];
 }
@@ -293,7 +294,7 @@ export interface RoundSummary {
   totalMembers: number;
   receiverId?: number;
   receiverName?: string;
-  openedAt: string;
+  openedAt?: string;
   paidOutAt?: string;
 }
 
