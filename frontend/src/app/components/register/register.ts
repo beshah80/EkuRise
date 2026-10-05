@@ -29,7 +29,7 @@ export class Register {
   });
 
   jobs = ['Driver', 'Merchant', 'Teacher', 'Engineer', 'Accountant', 'Business Owner', 'Office Worker', 'Other'];
-  genders = ['Male', 'Female', 'Other'];
+  genders = ['Male', 'Female'];
 
   submit() {
     if (this.form.invalid) return;

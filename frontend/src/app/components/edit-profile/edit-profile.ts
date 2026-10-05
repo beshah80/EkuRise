@@ -29,7 +29,7 @@ export class EditProfile {
   });
 
   jobs = ['Driver', 'Merchant', 'Teacher', 'Engineer', 'Accountant', 'Business Owner', 'Office Worker', 'Other'];
-  genders = ['Male', 'Female', 'Other'];
+  genders = ['Male', 'Female'];
 
   ngOnInit() {
     this.auth.getProfile().subscribe({
