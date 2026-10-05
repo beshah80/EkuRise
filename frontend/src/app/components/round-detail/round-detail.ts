@@ -66,7 +66,7 @@ export class RoundDetail {
 
   openNext() {
     this.loading.set(true);
-    this.roundService.openNextRound(this.circleId, this.round()!.id).subscribe({
+    this.roundService.openNextRound(this.circleId).subscribe({
       next: (r) => { this.loading.set(false); this.router.navigate(['/circles', this.circleId, 'rounds', r.id]); },
       error: (err: any) => { this.loading.set(false); this.error.set(err.error?.title || 'Failed'); }
     });

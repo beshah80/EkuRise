@@ -5,7 +5,7 @@ namespace EkubApi.Services;
 
 public interface IRoundService
 {
-    Task<List<RoundSummaryDto>> GetRoundsAsync(int circleId, int? roundNumber, RoundStatus? status);
+    Task<List<RoundSummaryDto>> GetRoundsAsync(int circleId, int userId, int? roundNumber, RoundStatus? status);
     Task<RoundDetailDto?> GetRoundByIdAsync(int circleId, int roundId, int userId);
     Task<RoundDetailDto?> GetCurrentRoundAsync(int circleId, int userId);
     Task<RoundDetailDto> MarkPaymentAsync(int circleId, int roundId, MarkPaymentDto dto, int organizerId);

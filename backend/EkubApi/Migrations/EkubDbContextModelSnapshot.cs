@@ -415,7 +415,7 @@ namespace EkubApi.Migrations
                     b.Property<int>("CircleId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<DateTime>("OpenedAt")
+                    b.Property<DateTime?>("OpenedAt")
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime?>("PaidOutAt")

@@ -15,15 +15,19 @@ public class RoundService : IRoundService
         _db = db;
     }
 
-    public async Task<List<RoundSummaryDto>> GetRoundsAsync(int circleId, int? roundNumber, RoundStatus? status)
+    public async Task<List<RoundSummaryDto>> GetRoundsAsync(int circleId, int userId, int? roundNumber, RoundStatus? status)
     {
+        // Only members of the circle may list its rounds
+        var isMember = await _db.CircleMembers
+            .AnyAsync(cm => cm.CircleId == circleId && cm.UserId == userId);
+        if (!isMember) return [];
+
         var query = _db.Rounds
             .Where(r => r.CircleId == circleId)
             .Include(r => r.Circle)
             .Include(r => r.Receiver)
             .Include(r => r.Payments)
             .AsQueryable();
-
         if (roundNumber.HasValue)
         {
             query = query.Where(r => r.RoundNumber == roundNumber.Value);
@@ -36,7 +40,13 @@ public class RoundService : IRoundService
 
         var rounds = await query.OrderBy(r => r.RoundNumber).ToListAsync();
 
-        return rounds.Select(r => MapToSummary(r)).ToList();
+        // Load payout order → member name map for this circle once
+        var membersByOrder = await _db.CircleMembers
+            .Where(cm => cm.CircleId == circleId)
+            .Include(cm => cm.User)
+            .ToDictionaryAsync(cm => cm.PayoutOrder, cm => $"{cm.User!.FirstName} {cm.User!.LastName}");
+
+        return rounds.Select(r => MapToSummary(r, membersByOrder)).ToList();
     }
 
     public async Task<RoundDetailDto?> GetCurrentRoundAsync(int circleId, int userId)
@@ -307,6 +317,14 @@ public class RoundService : IRoundService
         var paidCount = round.Payments.Count(p => p.HasPaid);
         var pot = paidCount * circle.Contribution;
 
+        // Who is scheduled to receive this round (fixed payout order = round number)
+        var scheduledReceiver = await _db.CircleMembers
+            .Include(cm => cm.User)
+            .FirstOrDefaultAsync(cm => cm.CircleId == round.CircleId && cm.PayoutOrder == round.RoundNumber);
+        var nextReceiverName = scheduledReceiver?.User is not null
+            ? $"{scheduledReceiver.User.FirstName} {scheduledReceiver.User.LastName}"
+            : null;
+
         return new RoundDetailDto(
             round.Id,
             round.RoundNumber,
@@ -318,17 +336,21 @@ public class RoundService : IRoundService
             round.Payments.Count,
             round.ReceiverId,
             round.Receiver is not null ? $"{round.Receiver.FirstName} {round.Receiver.LastName}" : null,
+            nextReceiverName,
             round.OpenedAt,
             round.PaidOutAt,
             paymentDtos
         );
     }
 
-    private static RoundSummaryDto MapToSummary(Round r)
+    private static RoundSummaryDto MapToSummary(Round r, Dictionary<int, string> membersByOrder)
     {
         var paidCount = r.Payments.Count(p => p.HasPaid);
         var circle = r.Circle;
         var pot = circle is not null ? paidCount * circle.Contribution : 0m;
+
+        // Scheduled receiver = member whose payout order equals this round number
+        membersByOrder.TryGetValue(r.RoundNumber, out var nextReceiverName);
 
         return new RoundSummaryDto(
             r.Id,
@@ -339,6 +361,7 @@ public class RoundService : IRoundService
             r.Payments.Count,
             r.ReceiverId,
             r.Receiver is not null ? $"{r.Receiver.FirstName} {r.Receiver.LastName}" : null,
+            nextReceiverName,
             r.OpenedAt,
             r.PaidOutAt
         );

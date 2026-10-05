@@ -291,7 +291,7 @@ namespace EkubApi.Migrations
                     RoundNumber = table.Column<int>(type: "INTEGER", nullable: false),
                     Status = table.Column<int>(type: "INTEGER", nullable: false),
                     ReceiverId = table.Column<int>(type: "INTEGER", nullable: true),
-                    OpenedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    OpenedAt = table.Column<DateTime>(type: "TEXT", nullable: true),
                     PaidOutAt = table.Column<DateTime>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
@@ -320,7 +320,14 @@ namespace EkubApi.Migrations
                     UserId = table.Column<int>(type: "INTEGER", nullable: false),
                     SubCategoryId = table.Column<int>(type: "INTEGER", nullable: false),
                     AgreedToTerms = table.Column<bool>(type: "INTEGER", nullable: false),
-                    JoinedAt = table.Column<DateTime>(type: "TEXT", nullable: false)
+                    FullName = table.Column<string>(type: "TEXT", maxLength: 150, nullable: true),
+                    NationalIdFan = table.Column<string>(type: "TEXT", maxLength: 50, nullable: true),
+                    PaymentProofUrl = table.Column<string>(type: "TEXT", nullable: true),
+                    Status = table.Column<int>(type: "INTEGER", nullable: false),
+                    RejectionReason = table.Column<string>(type: "TEXT", nullable: true),
+                    JoinedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    SubmittedAt = table.Column<DateTime>(type: "TEXT", nullable: true),
+                    ApprovedAt = table.Column<DateTime>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {

@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EkubApi.Migrations
 {
     [DbContext(typeof(EkubDbContext))]
-    [Migration("20261005120444_AddSubscriptionKycAndPayment")]
-    partial class AddSubscriptionKycAndPayment
+    [Migration("20261005140533_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -418,7 +418,7 @@ namespace EkubApi.Migrations
                     b.Property<int>("CircleId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<DateTime>("OpenedAt")
+                    b.Property<DateTime?>("OpenedAt")
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime?>("PaidOutAt")

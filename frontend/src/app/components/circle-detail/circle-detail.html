@@ -74,6 +74,11 @@
               <span>Round {{ currentRound()!.roundNumber }} of {{ currentRound()!.totalRounds }}</span>
               <span class="pot">{{ currentRound()!.pot.toLocaleString() }} ETB</span>
             </div>
+            @if (currentRound()!.nextReceiverName) {
+              <div class="next-winner-row">
+                🏆 This round's winner: <strong>{{ currentRound()!.nextReceiverName }}</strong>
+              </div>
+            }
             <div class="progress-row">
               <small>{{ currentRound()!.paidCount }}/{{ currentRound()!.totalMembers }} paid</small>
               <div class="progress">
@@ -89,7 +94,7 @@
           <div class="status-rows">
             <div class="status-row">
               <span>This round payment</span>
-              @if (myPayment()?.hasPaid) {
+              @if (memberStatus()?.hasPaidCurrentRound) {
                 <span class="badge active">Paid ✓</span>
               } @else {
                 <span class="badge forming">Unpaid</span>
@@ -97,14 +102,41 @@
             </div>
             <div class="status-row">
               <span>Pot received</span>
-              @if (myMembership()?.hasReceived) {
+              @if (memberStatus()?.hasReceived) {
                 <span class="badge active">Yes ✓</span>
               } @else {
                 <span class="badge">Not yet</span>
               }
             </div>
+            @if (memberStatus()?.currentPot) {
+              <div class="status-row">
+                <span>Pot so far</span>
+                <span class="pot-amount">{{ memberStatus()!.currentPot | number }} ETB</span>
+              </div>
+            }
+            @if (memberStatus()?.payoutOrder) {
+              <div class="status-row">
+                <span>My payout position</span>
+                <span>#{{ memberStatus()!.payoutOrder }}</span>
+              </div>
+            }
           </div>
         </div>
+
+        @if (memberStatus()?.winnerHistory?.length) {
+          <div class="card">
+            <h3>Past Winners</h3>
+            @for (w of memberStatus()!.winnerHistory; track w.roundNumber) {
+              <div class="member-row">
+                <div>
+                  <div class="member-name">Round {{ w.roundNumber }} — {{ w.receiverName }}</div>
+                  <small>{{ w.pot | number }} ETB &nbsp;·&nbsp; {{ formatDate(w.paidOutAt) }}</small>
+                </div>
+                <span class="badge active small">Won</span>
+              </div>
+            }
+          </div>
+        }
 
         <div class="card">
           <div class="section-header">
@@ -130,11 +162,43 @@
 
       <!-- COMPLETED STATE -->
       @if (circle()!.status === 2) {
-        <div class="card">
+        <div class="card completed-hero">
           <div class="completed-header">🎉 Circle Complete!</div>
-          <p class="completed-msg">All members have received the pot.</p>
-          <button class="btn-outline" (click)="viewHistory()">View Summary</button>
+          <p class="completed-msg">All {{ circle()!.memberCount }} members have received the pot.</p>
         </div>
+
+        @if (memberStatus()?.winnerHistory?.length) {
+          <div class="card">
+            <h3>Final Summary</h3>
+            <table class="summary-table">
+              <thead>
+                <tr>
+                  <th>Round</th>
+                  <th>Winner</th>
+                  <th>Amount</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (w of memberStatus()!.winnerHistory; track w.roundNumber) {
+                  <tr [class.highlight]="w.receiverId === currentUserId">
+                    <td>{{ w.roundNumber }}</td>
+                    <td>
+                      {{ w.receiverName }}
+                      @if (w.receiverId === currentUserId) {
+                        <span class="badge active small">You</span>
+                      }
+                    </td>
+                    <td>{{ w.pot | number }} ETB</td>
+                    <td>{{ formatDate(w.paidOutAt) }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+
+        <button class="btn-outline btn-full" (click)="viewHistory()">View Full Round History</button>
       }
     </div>
   }

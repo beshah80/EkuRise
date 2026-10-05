@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import {
-  CreateCircle, AddMember, CircleSummary, CircleDetail, MemberDto
+  CreateCircle, AddMember, CircleSummary, CircleDetail, MemberDto, MemberHome
 } from '../models/models';
 
 @Injectable({ providedIn: 'root' })
@@ -32,5 +32,9 @@ export class CircleService {
 
   startCircle(circleId: number): Observable<CircleDetail> {
     return this.http.post<CircleDetail>(`${this.baseUrl}/${circleId}/start`, {});
+  }
+
+  getMemberStatus(circleId: number): Observable<MemberHome> {
+    return this.http.get<MemberHome>(`${this.baseUrl}/${circleId}/my-status`);
   }
 }

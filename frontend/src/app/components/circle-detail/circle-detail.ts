@@ -3,13 +3,14 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CircleService } from '../../services/circle.service';
 import { TokenService } from '../../services/token.service';
-import { CircleDetail as CircleDetailModel, RoundDetail } from '../../models/models';
+import { CircleDetail as CircleDetailModel, RoundDetail, MemberHome } from '../../models/models';
 import { RoundService } from '../../services/round.service';
+import { DecimalPipe } from '@angular/common';
 
 @Component({
   standalone: true,
   selector: 'app-circle-detail',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, DecimalPipe],
   templateUrl: './circle-detail.html',
   styleUrl: './circle-detail.css'
 })
@@ -23,6 +24,7 @@ export class CircleDetail {
 
   circle = signal<CircleDetailModel | null>(null);
   currentRound = signal<RoundDetail | null>(null);
+  memberStatus = signal<MemberHome | null>(null);
   loading = signal(true);
   error = signal('');
   success = signal('');
@@ -47,7 +49,13 @@ export class CircleDetail {
         this.circle.set(c);
         this.loading.set(false);
         this.isOrganizer.set(c.organizerId === this.currentUserId);
-        if (c.status === 1) this.loadCurrentRound();
+        if (c.status === 1) {
+          this.loadCurrentRound();
+          this.loadMemberStatus();
+        }
+        if (c.status === 2) {
+          this.loadMemberStatus();
+        }
       },
       error: () => { this.error.set('Circle not found'); this.loading.set(false); }
     });
@@ -56,6 +64,13 @@ export class CircleDetail {
   loadCurrentRound() {
     this.roundService.getCurrentRound(this.circleId).subscribe({
       next: (r) => this.currentRound.set(r),
+      error: () => {}
+    });
+  }
+
+  loadMemberStatus() {
+    this.circleService.getMemberStatus(this.circleId).subscribe({
+      next: (s) => this.memberStatus.set(s),
       error: () => {}
     });
   }
@@ -79,7 +94,13 @@ export class CircleDetail {
     this.showConfirm.set(false);
     this.loading.set(true);
     this.circleService.startCircle(this.circleId).subscribe({
-      next: (c) => { this.circle.set(c); this.loading.set(false); this.success.set('Circle started!'); this.loadCurrentRound(); },
+      next: (c) => {
+        this.circle.set(c);
+        this.loading.set(false);
+        this.success.set('Circle started!');
+        this.loadCurrentRound();
+        this.loadMemberStatus();
+      },
       error: (err: any) => { this.loading.set(false); this.error.set(err.error?.title || 'Failed to start'); }
     });
   }
@@ -91,9 +112,11 @@ export class CircleDetail {
   viewHistory() { this.router.navigate(['/circles', this.circleId, 'rounds']); }
   goBack() { this.router.navigate(['/home']); }
 
-  myPayment() { return this.currentRound()?.payments.find(p => p.userId === this.currentUserId); }
   myMembership() { return this.circle()?.members.find(m => m.userId === this.currentUserId); }
 
   statusLabel(s: number) { return ['Forming', 'Active', 'Completed'][s] || 'Unknown'; }
   statusClass(s: number) { return ['forming', 'active', 'completed'][s] || ''; }
+  formatDate(d: string) {
+    return d ? new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '-';
+  }
 }

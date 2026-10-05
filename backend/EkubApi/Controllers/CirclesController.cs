@@ -100,4 +100,18 @@ public class CirclesController : BaseController
         var circle = await _circleService.StartCircleAsync(circleId, organizerId);
         return Ok(circle);
     }
+
+    /// <summary>
+    /// Member home screen: paid this round, received status, current pot, winner history.
+    /// Returns everything a member needs in a single call.
+    /// </summary>
+    [HttpGet("{circleId}/my-status")]
+    [ProducesResponseType(typeof(MemberHomeDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<MemberHomeDto>> MyStatus(int circleId)
+    {
+        var userId = GetUserId();
+        var status = await _circleService.GetMemberHomeAsync(circleId, userId);
+        return status is null ? NotFound() : Ok(status);
+    }
 }

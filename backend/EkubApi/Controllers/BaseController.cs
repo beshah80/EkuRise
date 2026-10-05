@@ -19,7 +19,11 @@ public abstract class BaseController : ControllerBase
 
         if (claim is null || !int.TryParse(claim, out var id))
         {
-            throw new UnauthorizedAccessException("User is not authenticated.");
+            // 401 Unauthorized: the token is absent or the identity claim is missing.
+            // Throwing UnauthorizedAccessException would map to 403 via the middleware,
+            // so we write the status code directly and throw a specific exception type.
+            HttpContext.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            throw new InvalidOperationException("User is not authenticated.");
         }
 
         return id;

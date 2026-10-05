@@ -25,7 +25,7 @@ public class Round
     public int? ReceiverId { get; set; }
     public User? Receiver { get; set; }
 
-    public DateTime OpenedAt { get; set; }
+    public DateTime? OpenedAt { get; set; }
     public DateTime? PaidOutAt { get; set; }
 
     // Navigation

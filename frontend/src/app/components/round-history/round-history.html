@@ -24,10 +24,18 @@
         <div class="round-left">
           <span class="round-num">Round {{ r.roundNumber }}</span>
           <small>{{ r.paidCount }}/{{ r.totalMembers }} paid</small>
+          @if (r.nextReceiverName) {
+            <small class="winner-label">
+              @if (r.status === 2) {
+                🏆 {{ r.receiverName }}
+              } @else {
+                🏆 {{ r.nextReceiverName }}
+              }
+            </small>
+          }
         </div>
         <div class="round-right">
           <span class="pot">{{ r.pot.toLocaleString() }} ETB</span>
-          @if (r.receiverName) { <small>{{ r.receiverName }}</small> }
           <span class="badge" [class]="statusClass(r.status)">{{ statusLabel(r.status) }}</span>
         </div>
       </div>

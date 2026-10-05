@@ -10,4 +10,5 @@ public interface ICircleService
     Task<MemberDto> AddMemberAsync(int circleId, AddMemberDto dto, int organizerId);
     Task RemoveMemberAsync(int circleId, int userId, int organizerId);
     Task<CircleDetailDto> StartCircleAsync(int circleId, int organizerId);
+    Task<MemberHomeDto?> GetMemberHomeAsync(int circleId, int userId);
 }

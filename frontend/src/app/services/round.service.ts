@@ -33,7 +33,7 @@ export class RoundService {
     return this.http.post<PayoutResult>(`${this.baseUrl}/${circleId}/rounds/${roundId}/payout`, {});
   }
 
-  openNextRound(circleId: number, roundId: number): Observable<RoundDetail> {
-    return this.http.post<RoundDetail>(`${this.baseUrl}/${circleId}/rounds/${roundId}/next`, {});
+  openNextRound(circleId: number): Observable<RoundDetail> {
+    return this.http.post<RoundDetail>(`${this.baseUrl}/${circleId}/rounds/next`, {});
   }
 }

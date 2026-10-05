@@ -27,7 +27,8 @@ public class RoundsController : BaseController
         [FromQuery] int? roundNumber,
         [FromQuery] RoundStatus? status)
     {
-        var rounds = await _roundService.GetRoundsAsync(circleId, roundNumber, status);
+        var userId = GetUserId();
+        var rounds = await _roundService.GetRoundsAsync(circleId, userId, roundNumber, status);
         return Ok(rounds);
     }
 
@@ -94,14 +95,14 @@ public class RoundsController : BaseController
 
     /// <summary>
     /// Open the next pending round. Only allowed after the current round is paid out.
-    /// Organizer only.
+    /// Organizer only. Route is POST api/circles/{circleId}/rounds/next.
     /// </summary>
-    [HttpPost("{roundId}/next")]
+    [HttpPost("next")]
     [ProducesResponseType(typeof(RoundDetailDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<RoundDetailDto>> OpenNext(int circleId, int roundId)
+    public async Task<ActionResult<RoundDetailDto>> OpenNext(int circleId)
     {
         var organizerId = GetUserId();
         var round = await _roundService.OpenNextRoundAsync(circleId, organizerId);

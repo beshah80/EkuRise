@@ -32,6 +32,10 @@ public class ExceptionHandlingMiddleware
 
     private async Task HandleExceptionAsync(HttpContext context, Exception ex)
     {
+        // If a controller already set a specific status (e.g. 401 from GetUserId),
+        // honour it instead of overwriting with the generic mapping below.
+        var alreadySet = context.Response.HasStarted == false && context.Response.StatusCode != 200;
+
         var (statusCode, title) = ex switch
         {
             KeyNotFoundException => (HttpStatusCode.NotFound, ex.Message),
@@ -40,6 +44,13 @@ public class ExceptionHandlingMiddleware
             ArgumentException => (HttpStatusCode.BadRequest, ex.Message),
             _ => (HttpStatusCode.InternalServerError, "An unexpected error occurred.")
         };
+
+        // Preserve an explicit status code already written by the controller
+        if (alreadySet)
+        {
+            statusCode = (HttpStatusCode)context.Response.StatusCode;
+            title = ex.Message;
+        }
 
         if (statusCode == HttpStatusCode.InternalServerError)
         {

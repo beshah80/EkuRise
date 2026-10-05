@@ -67,8 +67,37 @@ public record CircleDetailDto(
     decimal Contribution,
     string MeetingLabel,
     CircleStatus Status,
+    int OrganizerId,
     string OrganizerName,
     int? CurrentRoundNumber,
     int MemberCount,
     List<MemberDto> Members
+);
+
+/// <summary>
+/// Past round winner summary used in member home history.
+/// </summary>
+public record RoundWinnerDto(
+    int RoundNumber,
+    int ReceiverId,
+    string ReceiverName,
+    decimal Pot,
+    DateTime PaidOutAt
+);
+
+/// <summary>
+/// Member home screen: everything the calling member needs in one call.
+/// - HasPaidCurrentRound: whether they paid the currently open round
+/// - HasReceived: whether they have ever received the pot
+/// - CurrentPot: pot accumulated so far this round (paid members × contribution)
+/// - CurrentRoundNumber: which round is open right now (null if circle not active)
+/// - WinnerHistory: every past round winner in order
+/// </summary>
+public record MemberHomeDto(
+    bool HasPaidCurrentRound,
+    bool HasReceived,
+    decimal CurrentPot,
+    int? CurrentRoundNumber,
+    int PayoutOrder,
+    List<RoundWinnerDto> WinnerHistory
 );

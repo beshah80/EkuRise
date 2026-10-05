@@ -23,6 +23,12 @@
         <div class="pot-label">Total Pot</div>
         <small>{{ round()!.paidCount }}/{{ round()!.totalMembers }} paid · {{ round()!.contribution }} ETB each</small>
 
+        @if (round()!.status === 1 && round()!.nextReceiverName) {
+          <div class="receiver next-receiver">
+            🏆 This round's winner: <strong>{{ round()!.nextReceiverName }}</strong>
+          </div>
+        }
+
         @if (round()!.status === 2) {
           <div class="receiver">Received by: <strong>{{ round()!.receiverName }}</strong> on {{ formatDate(round()!.paidOutAt!) }}</div>
         }

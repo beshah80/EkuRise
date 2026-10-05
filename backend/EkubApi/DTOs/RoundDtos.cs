@@ -29,7 +29,8 @@ public record RoundDetailDto(
     int TotalMembers,
     int? ReceiverId,
     string? ReceiverName,
-    DateTime OpenedAt,
+    string? NextReceiverName,
+    DateTime? OpenedAt,
     DateTime? PaidOutAt,
     List<PaymentDto> Payments
 );
@@ -75,6 +76,7 @@ public record RoundSummaryDto(
     int TotalMembers,
     int? ReceiverId,
     string? ReceiverName,
-    DateTime OpenedAt,
+    string? NextReceiverName,
+    DateTime? OpenedAt,
     DateTime? PaidOutAt
 );

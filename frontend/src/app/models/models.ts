@@ -252,6 +252,23 @@ export interface CircleDetail {
   members: MemberDto[];
 }
 
+export interface RoundWinner {
+  roundNumber: number;
+  receiverId: number;
+  receiverName: string;
+  pot: number;
+  paidOutAt: string;
+}
+
+export interface MemberHome {
+  hasPaidCurrentRound: boolean;
+  hasReceived: boolean;
+  currentPot: number;
+  currentRoundNumber?: number;
+  payoutOrder: number;
+  winnerHistory: RoundWinner[];
+}
+
 // ===== Round Models =====
 
 export interface MarkPayment {
@@ -280,6 +297,7 @@ export interface RoundDetail {
   totalMembers: number;
   receiverId?: number;
   receiverName?: string;
+  nextReceiverName?: string;
   openedAt?: string;
   paidOutAt?: string;
   payments: PaymentDto[];
@@ -294,6 +312,7 @@ export interface RoundSummary {
   totalMembers: number;
   receiverId?: number;
   receiverName?: string;
+  nextReceiverName?: string;
   openedAt?: string;
   paidOutAt?: string;
 }

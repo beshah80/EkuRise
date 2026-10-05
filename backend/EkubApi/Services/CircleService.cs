@@ -152,7 +152,7 @@ public class CircleService : ICircleService
                 CircleId = circleId,
                 RoundNumber = i + 1,
                 Status = i == 0 ? RoundStatus.Open : RoundStatus.Pending,
-                OpenedAt = i == 0 ? DateTime.UtcNow : DateTime.MinValue
+                OpenedAt = i == 0 ? DateTime.UtcNow : null
             };
             rounds.Add(round);
         }
@@ -189,6 +189,69 @@ public class CircleService : ICircleService
 
         _db.Payments.AddRange(payments);
         await _db.SaveChangesAsync();
+    }
+
+    /// <summary>
+    /// Returns everything the calling member needs on their home screen in one call:
+    /// whether they paid the current round, whether they have received, the current pot,
+    /// and the full history of past round winners.
+    /// </summary>
+    public async Task<MemberHomeDto?> GetMemberHomeAsync(int circleId, int userId)
+    {
+        // Verify membership
+        var membership = await _db.CircleMembers
+            .FirstOrDefaultAsync(cm => cm.CircleId == circleId && cm.UserId == userId);
+        if (membership is null) return null;
+
+        var circle = await _db.Circles.FindAsync(circleId);
+        if (circle is null) return null;
+
+        // Current open round (null if circle not started or completed)
+        var currentRound = await _db.Rounds
+            .Include(r => r.Payments)
+            .FirstOrDefaultAsync(r => r.CircleId == circleId && r.Status == RoundStatus.Open);
+
+        bool hasPaidCurrentRound = false;
+        decimal currentPot = 0m;
+        int? currentRoundNumber = null;
+
+        if (currentRound is not null)
+        {
+            currentRoundNumber = currentRound.RoundNumber;
+            var myPayment = currentRound.Payments.FirstOrDefault(p => p.UserId == userId);
+            hasPaidCurrentRound = myPayment?.HasPaid ?? false;
+            var paidCount = currentRound.Payments.Count(p => p.HasPaid);
+            currentPot = paidCount * circle.Contribution;
+        }
+
+        // Winner history: every paid-out round, in order
+        var paidOutRounds = await _db.Rounds
+            .Where(r => r.CircleId == circleId && r.Status == RoundStatus.PaidOut && r.ReceiverId != null)
+            .Include(r => r.Receiver)
+            .Include(r => r.Payments)
+            .OrderBy(r => r.RoundNumber)
+            .ToListAsync();
+
+        var winnerHistory = paidOutRounds.Select(r =>
+        {
+            var pot = r.Payments.Count(p => p.HasPaid) * circle.Contribution;
+            return new RoundWinnerDto(
+                r.RoundNumber,
+                r.ReceiverId!.Value,
+                r.Receiver is not null ? $"{r.Receiver.FirstName} {r.Receiver.LastName}" : "Unknown",
+                pot,
+                r.PaidOutAt!.Value
+            );
+        }).ToList();
+
+        return new MemberHomeDto(
+            hasPaidCurrentRound,
+            membership.HasReceived,
+            currentPot,
+            currentRoundNumber,
+            membership.PayoutOrder,
+            winnerHistory
+        );
     }
 
     // --- Helpers ---
@@ -246,6 +309,7 @@ public class CircleService : ICircleService
             circle.Contribution,
             circle.MeetingLabel,
             circle.Status,
+            circle.OrganizerId,
             $"{circle.Organizer!.FirstName} {circle.Organizer!.LastName}",
             currentRound?.RoundNumber,
             circle.Members.Count,
