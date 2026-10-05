@@ -1,4 +1,4 @@
-﻿# EkubCircle — Digital Rotating Savings Circle (Ekub) Ledger
+﻿# EkuRise — Digital Rotating Savings Circle (Ekub) Ledger
 
 ## Team Members & Responsibilities
 
@@ -10,12 +10,13 @@
 
 ---
 
-## Tech Stack Used
+## Tech Stack
 
 - Frontend: Angular 17 with TypeScript
 - Backend: ASP.NET Core Web API (.NET 10)
-- Database: EF Core with SQLite
-- Authentication: JWT Bearer Token + Phone OTP + PIN Login
+- Database: PostgreSQl
+- ORM: Entity Framework Core
+- Authentication: JWT Bearer Token, Phone OTP, and PIN Login
 
 ---
 
