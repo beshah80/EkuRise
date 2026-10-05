@@ -22,6 +22,7 @@ builder.Services.AddScoped<IRoundService, RoundService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IFeedbackService, FeedbackService>();
 builder.Services.AddScoped<ICatalogService, CatalogService>();
+builder.Services.AddScoped<IAdminService, AdminService>();
 
 // --- JWT Authentication ---
 var jwtKey = builder.Configuration["Jwt:Key"] ?? "EkubCircleSecretKey2026AtLeast32Characters!!";

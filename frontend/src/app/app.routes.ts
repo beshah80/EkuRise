@@ -22,6 +22,7 @@ export const routes: Routes = [
   { path: 'account/stories', loadComponent: () => import('./components/success-stories/success-stories').then(m => m.SuccessStories), canActivate: [authGuard] },
   { path: 'account/referral', loadComponent: () => import('./components/referral/referral').then(m => m.Referral), canActivate: [authGuard] },
   { path: 'account/about', loadComponent: () => import('./components/about/about').then(m => m.About), canActivate: [authGuard] },
-  { path: 'admin/catalog', loadComponent: () => import('./components/admin-catalog/admin-catalog').then(m => m.AdminCatalog), canActivate: [authGuard, adminGuard] },
+  { path: 'admin', loadComponent: () => import('./components/admin-dashboard/admin-dashboard').then(m => m.AdminDashboard), canActivate: [authGuard, adminGuard] },
+  { path: 'admin/catalog', redirectTo: '/admin' },
   { path: '**', redirectTo: '/home' }
 ];

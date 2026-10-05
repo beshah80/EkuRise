@@ -126,6 +126,7 @@ export interface SubCategory {
   currentMemberCount: number;
   status: number;
   hasJoined: boolean;
+  circleId?: number;
 }
 
 export interface SubCategoryDetail {
@@ -321,3 +322,55 @@ export interface SuccessStoryDto {
   rating: number;
   createdAt: string;
 }
+
+// ===== Admin Portal Models =====
+
+export interface AdminStats {
+  totalUsers: number;
+  totalCircles: number;
+  activeCircles: number;
+  formingCircles: number;
+  completedCircles: number;
+  totalCategories: number;
+  totalSubCategories: number;
+  pendingStories: number;
+  pendingFeedbacks: number;
+  totalSavingsVolume: number;
+}
+
+export interface AdminUser {
+  id: number;
+  phoneNumber: string;
+  email?: string;
+  firstName: string;
+  lastName: string;
+  jobType: string;
+  location: string;
+  isPhoneVerified: boolean;
+  isAdmin: boolean;
+  joinedCirclesCount: number;
+  createdAt: string;
+}
+
+export interface AdminStory {
+  id: number;
+  userId?: number;
+  authorName: string;
+  userPhoneNumber?: string;
+  content: string;
+  rating: number;
+  isApproved: boolean;
+  createdAt: string;
+}
+
+export interface AdminFeedback {
+  id: number;
+  userId: number;
+  userName: string;
+  userPhoneNumber: string;
+  subject: string;
+  message: string;
+  status: number;
+  createdAt: string;
+}
+

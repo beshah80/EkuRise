@@ -1,4 +1,4 @@
-﻿# EkuRise — Digital Rotating Savings Circle (Ekub) Ledger
+# EkuRise — Digital Rotating Savings Circle (Ekub) Ledger
 
 ## Team Members & Responsibilities
 
@@ -14,7 +14,7 @@
 
 - Frontend: Angular 17 with TypeScript
 - Backend: ASP.NET Core Web API (.NET 10)
-- Database: PostgreSQl
+- Database: SQLite / PostgreSQL
 - ORM: Entity Framework Core
 - Authentication: JWT Bearer Token, Phone OTP, and PIN Login
 
@@ -31,13 +31,28 @@ Make sure you have installed:
 - .NET SDK
 - Entity Framework Core CLI
 
-### Backend
+### Backend Setup
 
 ```bash
 cd backend/EkubApi
 dotnet restore
 dotnet ef database update
 dotnet run
+```
+
+API runs on: http://localhost:5000
+
+### Frontend Setup
+
+```bash
+cd frontend
+npm install
+ng serve
+```
+
+App runs on: http://localhost:4200
+
+---
 
 ## Test Accounts & Demo Credentials
 
@@ -56,7 +71,7 @@ dotnet run
 
 EkuRise is a digital ledger for the traditional Ethiopian rotating savings circle called **Ekub**. In a traditional Ekub, a group of people agree on a fixed contribution amount. Every meeting, all members pay into the pot and one member takes the full pot. The rotation continues until every member has received once.
 
-EkubCircle brings this centuries-old system into a mobile-first digital platform. It is a **record book, not a bank** — no real money moves through the app. The organizer records payments and payouts. The system enforces all Ekub rules automatically.
+EkuRise brings this centuries-old system into a mobile-first digital platform. It is a **record book, not a bank** — no real money moves through the app. The organizer records payments and payouts. The system enforces all Ekub rules automatically.
 
 ---
 
@@ -108,11 +123,16 @@ EkubCircle brings this centuries-old system into a mobile-first digital platform
 - Members see: whether they have received the pot yet (Yes / Not yet)
 - Members see: the payout order list showing all members with their position
 - Members see: full round history — who won each round, when, for how much
-- Members cannot toggle payments or trigger payouts (read-only)
 
 ### Notifications
-- Bell icon on bottom nav with unread count badge
-- Notification types: payment reminder, payout received, round opened, member joined, circle started, circle completed
+- In-app notification bell with badge counter
+- Auto-created notifications for:
+  - Member joined your circle
+  - Circle started
+  - Round opened (time to pay)
+  - Payment recorded
+  - Payout completed (pot awarded)
+  - Circle completed
 - Mark individual notification as read or mark all read
 - Tap a notification to navigate directly to the related circle or round
 
@@ -128,16 +148,20 @@ EkubCircle brings this centuries-old system into a mobile-first digital platform
 - **Questions & Feedback:** submit questions, see response status (Pending / Reviewed)
 - **Success Stories:** read approved testimonials from other Ekub participants, submit your own story with a 1–5 star rating
 - **Referral:** view and copy personal referral code, see how many people you referred
-- **About Us:** information about EkubCircle
+- **About Us:** information about EkuRise
 - Logout
 
 ### Admin Features (Admin account only)
-- Manage Catalog page accessible from Account menu
-- Create new main categories
-- Create sub-categories with full details and terms and conditions
-- See how many members have joined each sub-category
-- Start an Ekub — auto-creates a Circle from all joined members, sets payout order, opens Round 1
-- View the auto-created Circle
+- **Admin Command Center (`/admin`):** Comprehensive unified admin portal accessible from the Account tab.
+- **Analytics & Platform Health:** Live metric overview showing total members, capital in circulation (ETB), active/forming/completed circles, pending stories, and open support inquiries.
+- **Manage Catalog:**
+  - Create new main categories
+  - Create sub-categories with full details, contribution, rounds, total pot, and terms and conditions
+  - Track member capacity in real-time
+  - Start an Ekub — auto-creates a Circle from all joined members, locks rosters, sets payout order, and opens Round 1
+- **Success Stories Moderation:** Review member submissions, star ratings, and approve or delete testimonials directly from the web interface.
+- **User Directory & RBAC:** Search members by name, phone, location, or occupation; toggle administrator privileges.
+- **Support Inbox:** Inspect submitted user inquiries and update status (Pending / Reviewed).
 
 ---
 
@@ -240,6 +264,18 @@ GET  /api/success-stories    Approved success stories
 POST /api/success-stories    Submit success story
 ```
 
+### Admin Portal
+```
+GET    /api/admin/stats                 Platform KPIs & metrics
+GET    /api/admin/users                 List all registered users with circle counts
+PUT    /api/admin/users/{id}/toggle-admin Toggle administrator privileges
+GET    /api/admin/stories               All user stories (pending & approved)
+PUT    /api/admin/stories/{id}/approve  Approve story for public display
+DELETE /api/admin/stories/{id}          Reject / delete story
+GET    /api/admin/feedbacks             List all user questions & feedback
+PUT    /api/admin/feedbacks/{id}/status Update feedback review status
+```
+
 ---
 
 ## Project Structure
@@ -275,13 +311,13 @@ hackaton/
 - Profile picture upload stores a URL string only — no actual file upload implemented
 - Fingerprint login is a UI toggle only — no Web Authentication API integration
 - Amharic language toggle is stored but UI translation not fully implemented
-- Admin approval for success stories must be done directly in the database for the demo
 - No push notifications — notifications are pulled from the API on page load
 
 ---
 
 ## Extra Credit Features Implemented
 
+- **Comprehensive Admin Command Center** — unified dashboard with platform analytics, user directory & RBAC, story moderation, support inbox, and catalog management
 - **Late fine field** on payment rows — organizer can record a fine amount per member per round
 - **Referral system** — every user gets a unique referral code, can track who they referred
 - **Ekub catalog** — admin-managed public Ekub catalog with categories and sub-categories

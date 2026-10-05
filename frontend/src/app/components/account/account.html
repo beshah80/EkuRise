@@ -37,11 +37,11 @@
       </div>
 
       @if (profile()!.isAdmin) {
-        <div class="group-label">Admin</div>
+        <div class="group-label">Admin Control</div>
         <div class="menu-group">
-          <div class="menu-item" (click)="go('/admin/catalog')">
-            <span class="menu-icon">⚙️</span>
-            <span class="menu-label">Manage Catalog</span>
+          <div class="menu-item" (click)="go('/admin')">
+            <span class="menu-icon">🛡️</span>
+            <span class="menu-label">Admin Command Center</span>
             <span class="chevron">›</span>
           </div>
         </div>

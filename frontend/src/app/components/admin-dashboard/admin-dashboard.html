@@ -1,0 +1,447 @@
+<div class="admin-page">
+  <!-- Top Navigation Header -->
+  <header class="admin-header">
+    <div class="header-left">
+      <button class="icon-back-btn" (click)="goBack()" title="Back to Account">
+        ←
+      </button>
+      <div>
+        <div class="badge-tag">ADMIN PORTAL</div>
+        <h1>Command Center</h1>
+      </div>
+    </div>
+    <div class="header-right">
+      <button class="refresh-btn" (click)="refreshAll()" title="Refresh All Data">
+        🔄 Refresh
+      </button>
+    </div>
+  </header>
+
+  <!-- Navigation Tabs -->
+  <nav class="admin-tabs">
+    <button class="tab-btn" [class.active]="activeTab() === 'overview'" (click)="setTab('overview')">
+      <span class="tab-icon">📊</span>
+      <span class="tab-label">Overview</span>
+    </button>
+    <button class="tab-btn" [class.active]="activeTab() === 'catalog'" (click)="setTab('catalog')">
+      <span class="tab-icon">📁</span>
+      <span class="tab-label">Catalog</span>
+    </button>
+    <button class="tab-btn" [class.active]="activeTab() === 'stories'" (click)="setTab('stories')">
+      <span class="tab-icon">⭐</span>
+      <span class="tab-label">Stories</span>
+      @if (stats() && stats()!.pendingStories > 0) {
+        <span class="tab-badge">{{ stats()!.pendingStories }}</span>
+      }
+    </button>
+    <button class="tab-btn" [class.active]="activeTab() === 'users'" (click)="setTab('users')">
+      <span class="tab-icon">👥</span>
+      <span class="tab-label">Users</span>
+    </button>
+    <button class="tab-btn" [class.active]="activeTab() === 'feedback'" (click)="setTab('feedback')">
+      <span class="tab-icon">💬</span>
+      <span class="tab-label">Inquiries</span>
+      @if (stats() && stats()!.pendingFeedbacks > 0) {
+        <span class="tab-badge">{{ stats()!.pendingFeedbacks }}</span>
+      }
+    </button>
+  </nav>
+
+  <!-- Main Body Content -->
+  <main class="admin-content">
+
+    <!-- ==================== TAB 1: OVERVIEW ==================== -->
+    @if (activeTab() === 'overview') {
+      <div class="tab-pane">
+        <!-- KPI Cards Grid -->
+        <div class="stats-grid">
+          <div class="stat-card primary">
+            <div class="stat-header">
+              <span class="stat-title">Platform Members</span>
+              <span class="stat-icon-bubble">👥</span>
+            </div>
+            <div class="stat-value">{{ stats()?.totalUsers ?? '...' }}</div>
+            <div class="stat-sub">Verified Ekub participants</div>
+          </div>
+
+          <div class="stat-card gold">
+            <div class="stat-header">
+              <span class="stat-title">Total Capital Volume</span>
+              <span class="stat-icon-bubble">💰</span>
+            </div>
+            <div class="stat-value">{{ (stats()?.totalSavingsVolume ?? 0).toLocaleString() }} <small>ETB</small></div>
+            <div class="stat-sub">Cumulative rotating value</div>
+          </div>
+
+          <div class="stat-card success">
+            <div class="stat-header">
+              <span class="stat-title">Active Running Circles</span>
+              <span class="stat-icon-bubble">🔄</span>
+            </div>
+            <div class="stat-value">{{ stats()?.activeCircles ?? 0 }}</div>
+            <div class="stat-sub">{{ stats()?.formingCircles ?? 0 }} forming · {{ stats()?.completedCircles ?? 0 }} completed</div>
+          </div>
+
+          <div class="stat-card info">
+            <div class="stat-header">
+              <span class="stat-title">Catalog Plans</span>
+              <span class="stat-icon-bubble">📋</span>
+            </div>
+            <div class="stat-value">{{ stats()?.totalSubCategories ?? 0 }}</div>
+            <div class="stat-sub">Across {{ stats()?.totalCategories ?? 0 }} main categories</div>
+          </div>
+
+          <div class="stat-card warning" (click)="setTab('stories')" role="button">
+            <div class="stat-header">
+              <span class="stat-title">Stories for Review</span>
+              <span class="stat-icon-bubble">⭐</span>
+            </div>
+            <div class="stat-value">{{ stats()?.pendingStories ?? 0 }}</div>
+            <div class="stat-sub">Member testimonials awaiting moderation</div>
+          </div>
+
+          <div class="stat-card purple" (click)="setTab('feedback')" role="button">
+            <div class="stat-header">
+              <span class="stat-title">Open Inquiries</span>
+              <span class="stat-icon-bubble">💬</span>
+            </div>
+            <div class="stat-value">{{ stats()?.pendingFeedbacks ?? 0 }}</div>
+            <div class="stat-sub">Customer support & feedback requests</div>
+          </div>
+        </div>
+
+        <!-- Quick Management Actions -->
+        <div class="section-card">
+          <div class="section-card-header">
+            <h3>⚡ Quick Management Actions</h3>
+          </div>
+          <div class="quick-actions-row">
+            <button class="action-tile" (click)="setTab('catalog')">
+              <span class="action-icon">➕</span>
+              <strong>Create New Plan</strong>
+              <small>Add categories or sub-category plans</small>
+            </button>
+            <button class="action-tile" (click)="setTab('stories')">
+              <span class="action-icon">✨</span>
+              <strong>Moderate Stories</strong>
+              <small>Approve member success stories</small>
+            </button>
+            <button class="action-tile" (click)="setTab('users')">
+              <span class="action-icon">👤</span>
+              <strong>Manage Users</strong>
+              <small>Search members & grant privileges</small>
+            </button>
+            <button class="action-tile" (click)="setTab('feedback')">
+              <span class="action-icon">📩</span>
+              <strong>Support Inbox</strong>
+              <small>Review member questions & feedback</small>
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- ==================== TAB 2: CATALOG MANAGEMENT ==================== -->
+    @if (activeTab() === 'catalog') {
+      <div class="tab-pane">
+        <!-- Add Category Accordion/Card -->
+        <div class="section-card">
+          <div class="section-card-header">
+            <h3>➕ Add Main Category</h3>
+          </div>
+          <form [formGroup]="catForm" (ngSubmit)="createCategory()" class="form-compact">
+            <div class="form-grid">
+              <input type="text" formControlName="name" placeholder="Category Name (e.g. Driver Equb, Merchant Equb)" />
+              <input type="text" formControlName="description" placeholder="Description (e.g. Daily plans for public transport operators)" />
+            </div>
+            <button type="submit" class="btn-primary" [disabled]="catForm.invalid">
+              Add Category
+            </button>
+          </form>
+        </div>
+
+        <!-- Existing Categories & Plans -->
+        <div class="catalog-list">
+          @for (cat of categories(); track cat.id) {
+            <div class="category-block">
+              <div class="category-block-header">
+                <div>
+                  <div class="category-title">{{ cat.name }}</div>
+                  @if (cat.description) {
+                    <div class="category-desc">{{ cat.description }}</div>
+                  }
+                </div>
+                <button class="btn-outline-sm" (click)="activeCatForm.set(activeCatForm() === cat.id ? null : cat.id)">
+                  {{ activeCatForm() === cat.id ? '✕ Close Form' : '+ Add Plan' }}
+                </button>
+              </div>
+
+              <!-- Add Sub-category form -->
+              @if (activeCatForm() === cat.id) {
+                <div class="sub-form-card">
+                  <h4>New Plan for "{{ cat.name }}"</h4>
+                  <form [formGroup]="subForm" (ngSubmit)="createSubCategory(cat.id)" class="form-stacked">
+                    <div class="form-grid-2">
+                      <div class="form-group">
+                        <label>Plan Name</label>
+                        <input type="text" formControlName="name" placeholder="e.g. Daily 500 ETB" />
+                      </div>
+                      <div class="form-group">
+                        <label>Daily Contribution (ETB)</label>
+                        <input type="number" formControlName="dailyContribution" placeholder="500" min="1" />
+                      </div>
+                      <div class="form-group">
+                        <label>Total Rounds (= Member Slots)</label>
+                        <input type="number" formControlName="totalRounds" placeholder="60" min="2" />
+                      </div>
+                      <div class="form-group">
+                        <label>Max Members</label>
+                        <input type="number" formControlName="maxMembers" placeholder="60" min="2" />
+                      </div>
+                      <div class="form-group full-width">
+                        <label>Scheduled Start Date</label>
+                        <input type="date" formControlName="startDate" />
+                      </div>
+                      <div class="form-group full-width">
+                        <label>Terms and Conditions</label>
+                        <textarea formControlName="termsAndConditions" rows="3" placeholder="Enter terms, payment intervals, and penalties..."></textarea>
+                      </div>
+                    </div>
+                    <div class="form-actions">
+                      <button type="submit" class="btn-primary" [disabled]="subForm.invalid">Save Plan</button>
+                      <button type="button" class="btn-secondary" (click)="activeCatForm.set(null)">Cancel</button>
+                    </div>
+                  </form>
+                </div>
+              }
+
+              <!-- Sub-categories List -->
+              <div class="plans-list">
+                @for (sub of getSubCats(cat.id); track sub.id) {
+                  <div class="plan-card">
+                    <div class="plan-info">
+                      <div class="plan-header-line">
+                        <h4 class="plan-name">{{ sub.name }}</h4>
+                        <span class="status-pill status-{{ sub.status }}">
+                          {{ statusLabel(sub.status) }}
+                        </span>
+                      </div>
+                      <div class="plan-meta-chips">
+                        <span class="chip">💵 {{ sub.dailyContribution }} ETB / day</span>
+                        <span class="chip">🎯 {{ sub.totalAmount.toLocaleString() }} ETB pot</span>
+                        <span class="chip">👥 {{ sub.currentMemberCount }} / {{ sub.maxMembers }} members</span>
+                      </div>
+                    </div>
+
+                    <div class="plan-actions">
+                      @if (sub.status === 0 || sub.status === 1) {
+                        <button class="btn-start" (click)="startEkub(sub.id)" [disabled]="sub.currentMemberCount < 2" [title]="sub.currentMemberCount < 2 ? 'Requires at least 2 members to start' : 'Start Ekub'">
+                          🚀 Start Ekub
+                        </button>
+                      } @else if (sub.circleId) {
+                        <button class="btn-view" [routerLink]="['/circles', sub.circleId]">
+                          👁️ View Circle
+                        </button>
+                      }
+                    </div>
+                  </div>
+                } @empty {
+                  <div class="empty-state-sm">No plans under this category yet. Click "+ Add Plan" above.</div>
+                }
+              </div>
+            </div>
+          } @empty {
+            <div class="empty-state">No categories found. Add your first category above!</div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- ==================== TAB 3: SUCCESS STORIES MODERATION ==================== -->
+    @if (activeTab() === 'stories') {
+      <div class="tab-pane">
+        <div class="filter-bar">
+          <div class="filter-chips">
+            <button class="filter-chip" [class.active]="storyFilter() === 'all'" (click)="storyFilter.set('all')">
+              All Stories ({{ stories().length }})
+            </button>
+            <button class="filter-chip" [class.active]="storyFilter() === 'pending'" (click)="storyFilter.set('pending')">
+              ⏳ Pending Approval
+            </button>
+            <button class="filter-chip" [class.active]="storyFilter() === 'approved'" (click)="storyFilter.set('approved')">
+              ✅ Approved
+            </button>
+          </div>
+        </div>
+
+        <div class="stories-grid">
+          @for (s of filteredStories(); track s.id) {
+            <div class="story-card" [class.pending-border]="!s.isApproved">
+              <div class="story-card-top">
+                <div class="author-block">
+                  <div class="avatar-circle">
+                    {{ s.authorName.charAt(0).toUpperCase() }}
+                  </div>
+                  <div>
+                    <strong class="author-name">{{ s.authorName }}</strong>
+                    @if (s.userPhoneNumber) {
+                      <div class="author-phone">📱 {{ s.userPhoneNumber }}</div>
+                    }
+                  </div>
+                </div>
+                <div class="story-status-tag" [class.approved]="s.isApproved">
+                  {{ s.isApproved ? '✅ Published' : '⏳ Pending Approval' }}
+                </div>
+              </div>
+
+              <div class="story-rating">
+                @for (star of [1, 2, 3, 4, 5]; track star) {
+                  <span [class.star-filled]="star <= s.rating">★</span>
+                }
+                <small class="story-date">{{ s.createdAt | date:'mediumDate' }}</small>
+              </div>
+
+              <p class="story-content">“{{ s.content }}”</p>
+
+              <div class="story-actions">
+                @if (!s.isApproved) {
+                  <button class="btn-approve" (click)="approveStory(s.id)">
+                    ✓ Approve & Publish
+                  </button>
+                }
+                <button class="btn-delete" (click)="deleteStory(s.id)">
+                  🗑️ Remove
+                </button>
+              </div>
+            </div>
+          } @empty {
+            <div class="empty-state">
+              <p>No success stories match the selected filter.</p>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- ==================== TAB 4: USER DIRECTORY ==================== -->
+    @if (activeTab() === 'users') {
+      <div class="tab-pane">
+        <div class="search-bar-wrap">
+          <input
+            type="text"
+            class="search-input"
+            placeholder="🔍 Search users by name, phone, occupation, location..."
+            [ngModel]="userSearch()"
+            (ngModelChange)="userSearch.set($event)"
+          />
+        </div>
+
+        <div class="users-list">
+          @for (u of filteredUsers(); track u.id) {
+            <div class="user-row-card">
+              <div class="user-main">
+                <div class="user-avatar" [class.admin-avatar]="u.isAdmin">
+                  {{ u.firstName.charAt(0) }}{{ u.lastName.charAt(0) }}
+                </div>
+                <div class="user-details">
+                  <div class="user-name-line">
+                    <strong>{{ u.firstName }} {{ u.lastName }}</strong>
+                    @if (u.isAdmin) {
+                      <span class="role-badge admin">ADMIN</span>
+                    } @else {
+                      <span class="role-badge member">MEMBER</span>
+                    }
+                  </div>
+                  <div class="user-info-chips">
+                    <span>📱 {{ u.phoneNumber }}</span>
+                    <span>📍 {{ u.location }}</span>
+                    <span>💼 {{ u.jobType }}</span>
+                    <span>⭕ {{ u.joinedCirclesCount }} Circles</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="user-action-cell">
+                @if (u.id === currentUserId) {
+                  <span class="self-tag">(Current Account)</span>
+                } @else {
+                  <button
+                    class="btn-role-toggle"
+                    [class.btn-revoke]="u.isAdmin"
+                    [class.btn-grant]="!u.isAdmin"
+                    (click)="toggleAdmin(u)"
+                  >
+                    {{ u.isAdmin ? 'Revoke Admin' : 'Grant Admin' }}
+                  </button>
+                }
+              </div>
+            </div>
+          } @empty {
+            <div class="empty-state">
+              <p>No users found matching "{{ userSearch() }}".</p>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- ==================== TAB 5: INQUIRIES & FEEDBACK ==================== -->
+    @if (activeTab() === 'feedback') {
+      <div class="tab-pane">
+        <div class="filter-bar">
+          <div class="filter-chips">
+            <button class="filter-chip" [class.active]="feedbackFilter() === 'all'" (click)="feedbackFilter.set('all')">
+              All Inquiries ({{ feedbacks().length }})
+            </button>
+            <button class="filter-chip" [class.active]="feedbackFilter() === 'pending'" (click)="feedbackFilter.set('pending')">
+              ⏳ Pending Action
+            </button>
+            <button class="filter-chip" [class.active]="feedbackFilter() === 'reviewed'" (click)="feedbackFilter.set('reviewed')">
+              ✅ Reviewed
+            </button>
+          </div>
+        </div>
+
+        <div class="feedback-list">
+          @for (f of filteredFeedbacks(); track f.id) {
+            <div class="feedback-card" [class.pending-feedback]="f.status === 0">
+              <div class="feedback-header">
+                <div>
+                  <h4 class="feedback-subject">{{ f.subject }}</h4>
+                  <div class="feedback-sender">
+                    From: <strong>{{ f.userName || 'Member' }}</strong> · 📱 {{ f.userPhoneNumber }}
+                  </div>
+                </div>
+                <div class="feedback-status-badge" [class.reviewed]="f.status === 1">
+                  {{ f.status === 1 ? 'Reviewed' : 'Pending' }}
+                </div>
+              </div>
+
+              <p class="feedback-message">{{ f.message }}</p>
+
+              <div class="feedback-footer">
+                <small class="feedback-date">{{ f.createdAt | date:'medium' }}</small>
+                <div class="feedback-actions">
+                  @if (f.status === 0) {
+                    <button class="btn-mark-reviewed" (click)="updateFeedbackStatus(f.id, 1)">
+                      ✓ Mark as Reviewed
+                    </button>
+                  } @else {
+                    <button class="btn-reopen" (click)="updateFeedbackStatus(f.id, 0)">
+                      ↩ Reopen
+                    </button>
+                  }
+                </div>
+              </div>
+            </div>
+          } @empty {
+            <div class="empty-state">
+              <p>No member feedback or inquiries match the current filter.</p>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+  </main>
+</div>
