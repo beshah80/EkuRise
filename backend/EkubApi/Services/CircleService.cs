@@ -1,0 +1,277 @@
+using EkubApi.Data;
+using EkubApi.DTOs;
+using EkubApi.Entities;
+using EkubApi.Enums;
+using Microsoft.EntityFrameworkCore;
+
+namespace EkubApi.Services;
+
+public class CircleService : ICircleService
+{
+    private readonly EkubDbContext _db;
+
+    public CircleService(EkubDbContext db)
+    {
+        _db = db;
+    }
+
+    public async Task<CircleDetailDto> CreateCircleAsync(CreateCircleDto dto, int organizerId)
+    {
+        var circle = new Circle
+        {
+            Name = dto.Name,
+            Contribution = dto.Contribution,
+            MeetingLabel = dto.MeetingLabel,
+            Status = CircleStatus.Forming,
+            OrganizerId = organizerId,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        _db.Circles.Add(circle);
+        await _db.SaveChangesAsync();
+
+        // The organizer is automatically the first member
+        var member = new CircleMember
+        {
+            CircleId = circle.Id,
+            UserId = organizerId,
+            JoinedAt = DateTime.UtcNow
+        };
+        _db.CircleMembers.Add(member);
+        await _db.SaveChangesAsync();
+
+        return await BuildCircleDetailDto(circle.Id);
+    }
+
+    public async Task<List<CircleSummaryDto>> GetMyCirclesAsync(int userId)
+    {
+        var circles = await _db.CircleMembers
+            .Where(cm => cm.UserId == userId)
+            .Select(cm => cm.Circle!)
+            .Include(c => c.Organizer)
+            .Include(c => c.Members)
+            .Include(c => c.Rounds)
+            .ToListAsync();
+
+        return circles.Select(c => MapToSummary(c)).ToList();
+    }
+
+    public async Task<CircleDetailDto?> GetCircleByIdAsync(int circleId, int userId)
+    {
+        // Ensure the requesting user is a member of this circle
+        var isMember = await _db.CircleMembers
+            .AnyAsync(cm => cm.CircleId == circleId && cm.UserId == userId);
+        if (!isMember) return null;
+
+        return await BuildCircleDetailDto(circleId);
+    }
+
+    public async Task<MemberDto> AddMemberAsync(int circleId, AddMemberDto dto, int organizerId)
+    {
+        var circle = await GetCircleOrThrowAsync(circleId);
+
+        EnsureOrganizer(circle, organizerId);
+        EnsureForming(circle);
+
+        // Find the user by phone number
+        var user = await _db.Users.FirstOrDefaultAsync(u => u.PhoneNumber == dto.PhoneNumber);
+        if (user is null)
+        {
+            throw new InvalidOperationException($"No registered user found with phone '{dto.PhoneNumber}'. They must register first.");
+        }
+
+        // Check if already a member
+        var alreadyMember = await _db.CircleMembers
+            .AnyAsync(cm => cm.CircleId == circleId && cm.UserId == user.Id);
+        if (alreadyMember)
+        {
+            throw new InvalidOperationException("This user is already a member of the circle.");
+        }
+
+        var member = new CircleMember
+        {
+            CircleId = circleId,
+            UserId = user.Id,
+            JoinedAt = DateTime.UtcNow
+        };
+        _db.CircleMembers.Add(member);
+        await _db.SaveChangesAsync();
+
+        return new MemberDto(user.Id, $"{user.FirstName} {user.LastName}", user.PhoneNumber, user.ProfilePictureUrl, 0, false, member.JoinedAt);
+    }
+
+    public async Task RemoveMemberAsync(int circleId, int userId, int organizerId)
+    {
+        var circle = await GetCircleOrThrowAsync(circleId);
+
+        EnsureOrganizer(circle, organizerId);
+        EnsureForming(circle);
+
+        if (userId == organizerId)
+        {
+            throw new InvalidOperationException("The organizer cannot be removed from the circle.");
+        }
+
+        var member = await _db.CircleMembers
+            .FirstOrDefaultAsync(cm => cm.CircleId == circleId && cm.UserId == userId)
+            ?? throw new InvalidOperationException("Member not found in this circle.");
+
+        _db.CircleMembers.Remove(member);
+        await _db.SaveChangesAsync();
+    }
+
+    public async Task<CircleDetailDto> StartCircleAsync(int circleId, int organizerId)
+    {
+        var circle = await GetCircleOrThrowAsync(circleId);
+
+        EnsureOrganizer(circle, organizerId);
+        EnsureForming(circle);
+
+        var members = await _db.CircleMembers
+            .Where(cm => cm.CircleId == circleId)
+            .OrderBy(cm => cm.JoinedAt)
+            .ToListAsync();
+
+        if (members.Count < 2)
+        {
+            throw new InvalidOperationException("A circle needs at least 2 members to start.");
+        }
+
+        // Lock the member list: assign fixed payout order based on join order
+        for (var i = 0; i < members.Count; i++)
+        {
+            members[i].PayoutOrder = i + 1; // 1-based
+        }
+
+        // Create one round per member. First round is Open, rest are Pending.
+        var rounds = new List<Round>();
+        for (var i = 0; i < members.Count; i++)
+        {
+            var round = new Round
+            {
+                CircleId = circleId,
+                RoundNumber = i + 1,
+                Status = i == 0 ? RoundStatus.Open : RoundStatus.Pending,
+                OpenedAt = i == 0 ? DateTime.UtcNow : DateTime.MinValue
+            };
+            rounds.Add(round);
+        }
+        _db.Rounds.AddRange(rounds);
+        await _db.SaveChangesAsync();
+
+        // Create payment rows for the first (open) round
+        await CreatePaymentRowsForRoundAsync(rounds[0].Id, circleId);
+
+        circle.Status = CircleStatus.Active;
+        circle.StartedAt = DateTime.UtcNow;
+        await _db.SaveChangesAsync();
+
+        return await BuildCircleDetailDto(circleId);
+    }
+
+    /// <summary>
+    /// Create one Payment row per member for the given round.
+    /// </summary>
+    internal async Task CreatePaymentRowsForRoundAsync(int roundId, int circleId)
+    {
+        var memberIds = await _db.CircleMembers
+            .Where(cm => cm.CircleId == circleId)
+            .Select(cm => cm.UserId)
+            .ToListAsync();
+
+        var payments = memberIds.Select(userId => new Payment
+        {
+            RoundId = roundId,
+            UserId = userId,
+            HasPaid = false,
+            LateFine = 0m
+        }).ToList();
+
+        _db.Payments.AddRange(payments);
+        await _db.SaveChangesAsync();
+    }
+
+    // --- Helpers ---
+
+    private async Task<Circle> GetCircleOrThrowAsync(int circleId)
+    {
+        return await _db.Circles.FindAsync(circleId)
+            ?? throw new KeyNotFoundException("Circle not found.");
+    }
+
+    private static void EnsureOrganizer(Circle circle, int userId)
+    {
+        if (circle.OrganizerId != userId)
+        {
+            throw new UnauthorizedAccessException("Only the organizer can perform this action.");
+        }
+    }
+
+    private static void EnsureForming(Circle circle)
+    {
+        if (circle.Status != CircleStatus.Forming)
+        {
+            throw new InvalidOperationException("This action is only allowed while the circle is forming.");
+        }
+    }
+
+    private async Task<CircleDetailDto> BuildCircleDetailDto(int circleId)
+    {
+        var circle = await _db.Circles
+            .Include(c => c.Organizer)
+            .Include(c => c.Members).ThenInclude(cm => cm.User)
+            .Include(c => c.Rounds)
+            .FirstAsync(c => c.Id == circleId);
+
+        var currentRound = circle.Rounds
+            .Where(r => r.Status == RoundStatus.Open)
+            .MinBy(r => r.RoundNumber);
+
+        var memberDtos = circle.Members
+            .OrderBy(cm => cm.PayoutOrder)
+            .Select(cm => new MemberDto(
+                cm.UserId,
+                $"{cm.User!.FirstName} {cm.User!.LastName}",
+                cm.User!.PhoneNumber,
+                cm.User!.ProfilePictureUrl,
+                cm.PayoutOrder,
+                cm.HasReceived,
+                cm.JoinedAt
+            ))
+            .ToList();
+
+        return new CircleDetailDto(
+            circle.Id,
+            circle.Name,
+            circle.Contribution,
+            circle.MeetingLabel,
+            circle.Status,
+            $"{circle.Organizer!.FirstName} {circle.Organizer!.LastName}",
+            currentRound?.RoundNumber,
+            circle.Members.Count,
+            memberDtos
+        );
+    }
+
+    private static CircleSummaryDto MapToSummary(Circle c)
+    {
+        var currentRoundNumber = c.Rounds
+            .Where(r => r.Status == RoundStatus.Open)
+            .MinBy(r => r.RoundNumber)?.RoundNumber;
+
+        var organizerName = c.Organizer is not null
+            ? $"{c.Organizer.FirstName} {c.Organizer.LastName}"
+            : "Unknown";
+
+        return new CircleSummaryDto(
+            c.Id,
+            c.Name,
+            c.Contribution,
+            c.MeetingLabel,
+            c.Status,
+            c.Members.Count,
+            currentRoundNumber ?? 0,
+            organizerName
+        );
+    }
+}
