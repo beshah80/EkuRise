@@ -21,28 +21,22 @@
 
 ## How to Run Locally
 
-### Backend Setup
+### Prerequisites
 
-```
+Make sure you have installed:
+
+- Node.js
+- Angular CLI
+- .NET SDK
+- Entity Framework Core CLI
+
+### Backend
+
+```bash
 cd backend/EkubApi
 dotnet restore
 dotnet ef database update
 dotnet run
-```
-
-API runs on: http://localhost:5000
-
-### Frontend Setup
-
-```
-cd frontend
-npm install
-ng serve
-```
-
-App runs on: http://localhost:4200
-
----
 
 ## Test Accounts & Demo Credentials
 
