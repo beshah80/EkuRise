@@ -52,9 +52,9 @@ dotnet run
 
 ---
 
-## What is EkubCircle?
+## What is EkuRise?
 
-EkubCircle is a digital ledger for the traditional Ethiopian rotating savings circle called **Ekub**. In a traditional Ekub, a group of people agree on a fixed contribution amount. Every meeting, all members pay into the pot and one member takes the full pot. The rotation continues until every member has received once.
+EkuRise is a digital ledger for the traditional Ethiopian rotating savings circle called **Ekub**. In a traditional Ekub, a group of people agree on a fixed contribution amount. Every meeting, all members pay into the pot and one member takes the full pot. The rotation continues until every member has received once.
 
 EkubCircle brings this centuries-old system into a mobile-first digital platform. It is a **record book, not a bank** — no real money moves through the app. The organizer records payments and payouts. The system enforces all Ekub rules automatically.
 
