@@ -1,78 +1,126 @@
 <div class="home-page">
   <header class="page-header">
-    <h1>EkubCircle</h1>
+    <div class="header-inner">
+      <div class="header-brand">
+        <div class="brand-icon">
+          <svg width="22" height="22" viewBox="0 0 36 36" fill="none">
+            <circle cx="18" cy="18" r="18" fill="rgba(255,255,255,0.2)"/>
+            <path d="M10 18a8 8 0 1 1 16 0" stroke="#F2B705" stroke-width="2.5" stroke-linecap="round"/>
+            <circle cx="18" cy="18" r="3" fill="#F2B705"/>
+          </svg>
+        </div>
+        <span class="brand-name">EnkuRise</span>
+      </div>
+      <div class="header-actions">
+        <button class="btn-create" routerLink="/circles/new">+ New Circle</button>
+      </div>
+    </div>
   </header>
 
-  <section class="catalog-section">
-    <h2>Browse Ekubs</h2>
+  <div class="content-wrap">
 
-    <div class="category-chips">
-      @for (cat of categories(); track cat.id) {
-        <button
-          class="chip"
-          [class.active]="selectedCategory() === cat.id"
-          (click)="selectCategory(cat.id)">
-          {{ cat.name }}
-        </button>
+    <!-- Catalog Section -->
+    <section class="catalog-section">
+      <div class="section-title">
+        <h2>Browse Ekubs</h2>
+        <p>Find and join a savings circle</p>
+      </div>
+
+      <div class="category-chips">
+        @for (cat of categories(); track cat.id) {
+          <button
+            class="chip"
+            [class.active]="selectedCategory() === cat.id"
+            (click)="selectCategory(cat.id)">
+            {{ cat.name }}
+          </button>
+        }
+      </div>
+
+      @if (error()) {
+        <div class="banner error">{{ error() }}</div>
       }
-    </div>
 
-    @if (error()) {
-      <div class="banner error">{{ error() }}</div>
-    }
-
-    <div class="card-grid">
-      @for (sub of subCategories(); track sub.id) {
-        <div class="ekub-card" (click)="viewSubCategory(sub.id)">
-          <div class="card-label">{{ sub.categoryName }}</div>
-          <h3>{{ sub.name }}</h3>
-          <div class="card-stats">
-            <span>Daily ~ {{ sub.dailyContribution }} ETB</span>
-            <span>Round: {{ sub.totalRounds }}</span>
-            <span>Total: {{ sub.totalAmount | number }} ETB</span>
-          </div>
-          <div class="card-meta">
-            <span>Starts: {{ formatDate(sub.startDate) }}</span>
-          </div>
-          <div class="card-footer">
-            <div class="members-bar">
-              <small>{{ sub.currentMemberCount }}/{{ sub.maxMembers }} members</small>
-              <div class="progress">
-                <div class="bar" [style.width.%]="(sub.currentMemberCount / sub.maxMembers) * 100"></div>
+      <div class="card-grid">
+        @for (sub of subCategories(); track sub.id) {
+          <div class="ekub-card" (click)="viewSubCategory(sub.id)">
+            <div class="card-top">
+              <div class="card-label">{{ sub.categoryName }}</div>
+              @if (sub.hasJoined) {
+                <span class="badge joined">✓ Joined</span>
+              } @else if (sub.status === 0) {
+                <span class="badge open">Open</span>
+              } @else {
+                <span class="badge">{{ statusLabel(sub.status) }}</span>
+              }
+            </div>
+            <h3>{{ sub.name }}</h3>
+            <div class="card-stats">
+              <div class="stat">
+                <span class="stat-value">{{ sub.dailyContribution | number }}</span>
+                <span class="stat-label">ETB / day</span>
+              </div>
+              <div class="stat-divider"></div>
+              <div class="stat">
+                <span class="stat-value">{{ sub.totalRounds }}</span>
+                <span class="stat-label">rounds</span>
+              </div>
+              <div class="stat-divider"></div>
+              <div class="stat">
+                <span class="stat-value">{{ sub.totalAmount | number }}</span>
+                <span class="stat-label">ETB pot</span>
               </div>
             </div>
-            @if (sub.hasJoined) {
-              <span class="badge joined">Joined</span>
-            } @else if (sub.status === 0) {
-              <span class="badge open">Join</span>
-            } @else {
-              <span class="badge">{{ statusLabel(sub.status) }}</span>
-            }
+            <div class="card-footer">
+              <div class="members-bar">
+                <div class="members-label">
+                  <span>{{ sub.currentMemberCount }}/{{ sub.maxMembers }} members</span>
+                  <span>Starts {{ formatDate(sub.startDate) }}</span>
+                </div>
+                <div class="progress">
+                  <div class="bar" [style.width.%]="(sub.currentMemberCount / sub.maxMembers) * 100"></div>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
-      } @empty {
-        <p class="empty">No Ekubs available in this category yet.</p>
-      }
-    </div>
-  </section>
-
-  <section class="circles-section">
-    <div class="section-header">
-      <h2>My Circles</h2>
-      <button class="btn-outline" routerLink="/circles/new">+ Create</button>
-    </div>
-
-    @for (circle of circles(); track circle.id) {
-      <div class="circle-card" (click)="viewCircle(circle.id)">
-        <h3>{{ circle.name }}</h3>
-        <div class="circle-info">
-          <span>{{ circle.contribution }} ETB / {{ circle.meetingLabel }}</span>
-          <span class="badge">{{ circleStatusLabel(circle.status) }}</span>
-        </div>
-        <small>{{ circle.memberCount }} members · Round {{ circle.currentRoundNumber }}</small>
+        } @empty {
+          <div class="empty-state">
+            <span class="empty-icon">🔍</span>
+            <p>No Ekubs available in this category yet.</p>
+          </div>
+        }
       </div>
-    } @empty {
-      <p class="empty">No circles yet.</p>
-    }
-  </section>
+    </section>
+
+    <!-- My Circles Section -->
+    <section class="circles-section">
+      <div class="section-title">
+        <h2>My Circles</h2>
+        <p>Your private savings groups</p>
+      </div>
+
+      <div class="circles-grid">
+        @for (circle of circles(); track circle.id) {
+          <div class="circle-card" (click)="viewCircle(circle.id)">
+            <div class="circle-top">
+              <h3>{{ circle.name }}</h3>
+              <span class="badge" [class.active-badge]="circle.status === 1">{{ circleStatusLabel(circle.status) }}</span>
+            </div>
+            <div class="circle-amount">{{ circle.contribution | number }} ETB <span>/ {{ circle.meetingLabel }}</span></div>
+            <div class="circle-meta">
+              <span>👥 {{ circle.memberCount }} members</span>
+              <span>🔄 Round {{ circle.currentRoundNumber }}</span>
+            </div>
+          </div>
+        } @empty {
+          <div class="empty-circles">
+            <span class="empty-icon">⭕</span>
+            <p>No circles yet</p>
+            <a routerLink="/circles/new" class="btn-empty-create">+ Create a Circle</a>
+          </div>
+        }
+      </div>
+    </section>
+
+  </div>
 </div>

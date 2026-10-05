@@ -1,80 +1,102 @@
-<div class="auth-screen">
-  <div class="auth-header">
-    <h1>Create Account</h1>
-    <p>Join EkubCircle and start saving together.</p>
-  </div>
-
-  @if (error()) {
-    <div class="banner error">{{ error() }}</div>
-  }
-
-  <form [formGroup]="form" class="auth-form" (ngSubmit)="submit()">
-    <div class="field">
-      <label>Phone Number</label>
-      <input type="tel" formControlName="phoneNumber" placeholder="09xxxxxxxx" />
-      @if (form.controls.phoneNumber.touched && form.controls.phoneNumber.invalid) {
-        <small class="error-text">Phone number is required</small>
-      }
+<div class="page-bg">
+  <div class="form-card">
+    <div class="form-header">
+      <div class="logo-mark">
+        <svg width="32" height="32" viewBox="0 0 36 36" fill="none">
+          <circle cx="18" cy="18" r="18" fill="#0F6B2D"/>
+          <path d="M10 18a8 8 0 1 1 16 0" stroke="#F2B705" stroke-width="2.5" stroke-linecap="round"/>
+          <circle cx="18" cy="18" r="3" fill="#F2B705"/>
+          <path d="M18 10v2M18 24v2M10 18H8M28 18h-2" stroke="#F2B705" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <span class="logo-text">EnkuRise</span>
+      <h1>Create Account</h1>
+      <p>Join your savings circle today</p>
     </div>
 
-    <div class="row">
+    <form [formGroup]="form" (ngSubmit)="submit()" class="form-grid">
+
+      @if (error()) {
+        <div class="banner error">{{ error() }}</div>
+      }
+
       <div class="field">
         <label>First Name</label>
-        <input type="text" formControlName="firstName" />
+        <input type="text" formControlName="firstName" placeholder="First name"
+          [class.invalid]="form.controls.firstName.touched && form.controls.firstName.invalid" />
         @if (form.controls.firstName.touched && form.controls.firstName.invalid) {
           <small class="error-text">Required</small>
         }
       </div>
+
       <div class="field">
         <label>Last Name</label>
-        <input type="text" formControlName="lastName" />
+        <input type="text" formControlName="lastName" placeholder="Last name"
+          [class.invalid]="form.controls.lastName.touched && form.controls.lastName.invalid" />
         @if (form.controls.lastName.touched && form.controls.lastName.invalid) {
           <small class="error-text">Required</small>
         }
       </div>
-    </div>
 
-    <div class="field">
-      <label>Gender</label>
-      <select formControlName="gender">
-        @for (g of genders; track g; let i = $index) {
-          <option [value]="i">{{ g }}</option>
+      <div class="field">
+        <label>Gender</label>
+        <select formControlName="gender">
+          <option value="" disabled>Select gender</option>
+          @for (g of genders; track g; let i = $index) {
+            <option [value]="i">{{ g }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Phone Number</label>
+        <input type="tel" formControlName="phoneNumber" placeholder="09xxxxxxxx"
+          [class.invalid]="form.controls.phoneNumber.touched && form.controls.phoneNumber.invalid" />
+        @if (form.controls.phoneNumber.touched && form.controls.phoneNumber.invalid) {
+          <small class="error-text">Min 10 digits required</small>
         }
-      </select>
-    </div>
+      </div>
 
-    <div class="field">
-      <label>Job Type</label>
-      <select formControlName="jobType">
-        <option value="">Select your job</option>
-        @for (job of jobs; track job) {
-          <option [value]="job">{{ job }}</option>
+      <div class="field">
+        <label>Job Type</label>
+        <select formControlName="jobType"
+          [class.invalid]="form.controls.jobType.touched && form.controls.jobType.invalid">
+          <option value="">Select job type</option>
+          @for (job of jobs; track job) {
+            <option [value]="job">{{ job }}</option>
+          }
+        </select>
+        @if (form.controls.jobType.touched && form.controls.jobType.invalid) {
+          <small class="error-text">Required</small>
         }
-      </select>
-      @if (form.controls.jobType.touched && form.controls.jobType.invalid) {
-        <small class="error-text">Required</small>
-      }
-    </div>
+      </div>
 
-    <div class="field">
-      <label>Location</label>
-      <input type="text" formControlName="location" placeholder="Your city" />
-      @if (form.controls.location.touched && form.controls.location.invalid) {
-        <small class="error-text">Required</small>
-      }
-    </div>
+      <div class="field">
+        <label>Location</label>
+        <input type="text" formControlName="location" placeholder="Your city"
+          [class.invalid]="form.controls.location.touched && form.controls.location.invalid" />
+        @if (form.controls.location.touched && form.controls.location.invalid) {
+          <small class="error-text">Required</small>
+        }
+      </div>
 
-    <div class="field">
-      <label>Referral Code (optional)</label>
-      <input type="text" formControlName="referralCode" placeholder="EK-XXXX-XXXX" />
-    </div>
+      <div class="field full">
+        <label>Referral Code <span class="optional">(optional)</span></label>
+        <input type="text" formControlName="referralCode" placeholder="EK-XXXX-XXXX" />
+      </div>
 
-    <button type="submit" class="btn-primary" [disabled]="loading() || form.invalid">
-      {{ loading() ? 'Creating account...' : 'Register' }}
-    </button>
-  </form>
+      <button type="submit" class="btn-submit" [disabled]="loading() || form.invalid">
+        @if (loading()) {
+          <span class="spinner"></span> Creating account...
+        } @else {
+          Create Account
+        }
+      </button>
 
-  <p class="auth-footer">
-    Already have an account? <a routerLink="/login">Login</a>
-  </p>
+    </form>
+
+    <p class="auth-footer">
+      Already have an account? <a routerLink="/login">Sign in</a>
+    </p>
+  </div>
 </div>
