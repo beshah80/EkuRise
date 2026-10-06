@@ -55,19 +55,13 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization();
 
 // --- CORS for Angular frontend ---
-var allowedOrigins = (builder.Configuration["AllowedOrigins"] ?? "")
-    .Split(',', StringSplitOptions.RemoveEmptyEntries)
-    .Concat(new[] { "http://localhost:4200", "https://localhost:4200" })
-    .ToArray();
-
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AngularClient", policy =>
     {
-        policy.WithOrigins(allowedOrigins)
+        policy.AllowAnyOrigin()
               .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials();
+              .AllowAnyMethod();
     });
 });
 
