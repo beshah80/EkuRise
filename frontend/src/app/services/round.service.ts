@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 import {
   RoundSummary, RoundDetail, MarkPayment, PayoutResult
 } from '../models/models';
@@ -8,7 +9,7 @@ import {
 @Injectable({ providedIn: 'root' })
 export class RoundService {
   private http = inject(HttpClient);
-  private readonly baseUrl = 'http://localhost:5000/api/circles';
+  private readonly baseUrl = `${environment.apiUrl}/circles`;
 
   getRounds(circleId: number, roundNumber?: number, status?: number): Observable<RoundSummary[]> {
     let params = new HttpParams();

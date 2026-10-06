@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 import {
   CreateCircle, AddMember, CircleSummary, CircleDetail, MemberDto, MemberHome
 } from '../models/models';
@@ -8,7 +9,7 @@ import {
 @Injectable({ providedIn: 'root' })
 export class CircleService {
   private http = inject(HttpClient);
-  private readonly baseUrl = 'http://localhost:5000/api/circles';
+  private readonly baseUrl = `${environment.apiUrl}/circles`;
 
   createCircle(data: CreateCircle): Observable<CircleDetail> {
     return this.http.post<CircleDetail>(this.baseUrl, data);

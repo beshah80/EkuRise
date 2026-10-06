@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 import {
   CreateFeedback, FeedbackDto, CreateSuccessStory, SuccessStoryDto
 } from '../models/models';
@@ -8,7 +9,7 @@ import {
 @Injectable({ providedIn: 'root' })
 export class FeedbackService {
   private http = inject(HttpClient);
-  private readonly baseUrl = 'http://localhost:5000/api';
+  private readonly baseUrl = environment.apiUrl;
 
   submitFeedback(data: CreateFeedback): Observable<FeedbackDto> {
     return this.http.post<FeedbackDto>(`${this.baseUrl}/feedback`, data);
