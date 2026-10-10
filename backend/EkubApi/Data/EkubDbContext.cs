@@ -22,6 +22,7 @@ public class EkubDbContext : DbContext
     public DbSet<EkubCategory> EkubCategories => Set<EkubCategory>();
     public DbSet<EkubSubCategory> EkubSubCategories => Set<EkubSubCategory>();
     public DbSet<EkubSubscription> EkubSubscriptions => Set<EkubSubscription>();
+    public DbSet<CircleJoinRequest> CircleJoinRequests => Set<CircleJoinRequest>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -76,6 +77,12 @@ public class EkubDbContext : DbContext
                 .WithMany(u => u.OrganizedCircles)
                 .HasForeignKey(c => c.OrganizerId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(c => c.Category)
+                .WithMany()
+                .HasForeignKey(c => c.CategoryId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .IsRequired(false);
         });
 
         // CircleMember
@@ -245,6 +252,25 @@ public class EkubDbContext : DbContext
             entity.Property(s => s.Status).HasConversion<int>();
             entity.Property(s => s.FullName).HasMaxLength(150);
             entity.Property(s => s.NationalIdFan).HasMaxLength(50);
+        });
+
+        // CircleJoinRequest
+        modelBuilder.Entity<CircleJoinRequest>(entity =>
+        {
+            entity.HasKey(r => r.Id);
+
+            entity.HasOne(r => r.Circle)
+                .WithMany(c => c.JoinRequests)
+                .HasForeignKey(r => r.CircleId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(r => r.User)
+                .WithMany()
+                .HasForeignKey(r => r.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.Property(r => r.Status).HasConversion<int>();
+            entity.Property(r => r.Message).HasMaxLength(500);
         });
     }
 }

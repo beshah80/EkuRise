@@ -32,6 +32,12 @@ public class Circle
     public int OrganizerId { get; set; }
     public User? Organizer { get; set; }
 
+    /// <summary>
+    /// Optional category this circle belongs to (e.g., Driver Equb, Trader Equb).
+    /// </summary>
+    public int? CategoryId { get; set; }
+    public EkubCategory? Category { get; set; }
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     /// <summary>
@@ -47,4 +53,5 @@ public class Circle
     // Navigation properties
     public ICollection<CircleMember> Members { get; set; } = [];
     public ICollection<Round> Rounds { get; set; } = [];
+    public ICollection<CircleJoinRequest> JoinRequests { get; set; } = [];
 }

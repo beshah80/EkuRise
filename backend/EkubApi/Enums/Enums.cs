@@ -86,3 +86,13 @@ public enum SubscriptionStatus
     Rejected = 3           // Admin rejected
 }
 
+/// <summary>
+/// Status of a join request submitted by a user who wants to join a circle.
+/// </summary>
+public enum CircleJoinRequestStatus
+{
+    Pending = 0,
+    Approved = 1,
+    Rejected = 2
+}
+

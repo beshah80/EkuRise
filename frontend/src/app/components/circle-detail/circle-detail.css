@@ -74,3 +74,8 @@ small { font-size: 12px; color: #888; }
 .step-num { font-size: 13px; font-weight: 700; }
 .step-name { font-size: 11px; color: #555; margin-top: 6px; text-align: center; max-width: 56px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .step-you { font-size: 10px; color: #0F6B2D; font-weight: 700; margin-top: 2px; }
+
+/* Join requests panel */
+.req-btns { display: flex; gap: 6px; }
+.btn-approve { background: none; border: 1px solid #c8e6c9; color: #0F6B2D; padding: 4px 10px; border-radius: 6px; font-size: 12px; cursor: pointer; }
+.req-msg { display: block; font-style: italic; color: #777; margin-top: 2px; }

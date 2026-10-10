@@ -2,6 +2,8 @@ import { Component, signal, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CircleService } from '../../services/circle.service';
+import { CatalogService } from '../../services/catalog.service';
+import { Category } from '../../models/models';
 
 @Component({
   standalone: true,
@@ -13,16 +15,26 @@ import { CircleService } from '../../services/circle.service';
 export class CreateCircle {
   private fb = inject(FormBuilder);
   private circleService = inject(CircleService);
+  private catalogService = inject(CatalogService);
   private router = inject(Router);
 
   loading = signal(false);
   error = signal('');
+  categories = signal<Category[]>([]);
 
   form = this.fb.group({
     name: ['', [Validators.required, Validators.minLength(3)]],
     contribution: [null as number | null, [Validators.required, Validators.min(1)]],
-    meetingLabel: ['Daily', Validators.required]
+    meetingLabel: ['Daily', Validators.required],
+    categoryId: [null as number | null]
   });
+
+  ngOnInit() {
+    this.catalogService.getCategories().subscribe({
+      next: (cats) => this.categories.set(cats),
+      error: () => {}
+    });
+  }
 
   submit() {
     if (this.form.invalid) return;

@@ -49,6 +49,29 @@
             </form>
           </div>
 
+          <!-- JOIN REQUESTS PANEL -->
+          @if (joinRequests().length > 0) {
+            <div class="card">
+              <h3>Join Requests ({{ joinRequests().length }})</h3>
+              @for (req of joinRequests(); track req.id) {
+                <div class="member-row">
+                  <div class="avatar-name">
+                    <div class="avatar">{{ req.userName[0] }}</div>
+                    <div>
+                      <div class="member-name">{{ req.userName }}</div>
+                      <small>{{ req.userPhone }}</small>
+                      @if (req.message) { <small class="req-msg">"{{ req.message }}"</small> }
+                    </div>
+                  </div>
+                  <div class="req-btns">
+                    <button class="btn-approve" (click)="approveRequest(req.id)">✓ Approve</button>
+                    <button class="btn-remove" (click)="rejectRequest(req.id)">✗ Reject</button>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+
           @if (!showConfirm()) {
             <button class="btn-primary btn-start" (click)="showConfirm.set(true)"
               [disabled]="circle()!.memberCount < 2">

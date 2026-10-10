@@ -24,6 +24,7 @@ public class CircleService : ICircleService
             MeetingLabel = dto.MeetingLabel,
             Status = CircleStatus.Forming,
             OrganizerId = organizerId,
+            CategoryId = dto.CategoryId,
             CreatedAt = DateTime.UtcNow
         };
 
@@ -256,6 +257,162 @@ public class CircleService : ICircleService
             currentRoundNumber,
             membership.PayoutOrder,
             winnerHistory
+        );
+    }
+
+    // --- Join Request Methods ---
+
+    public async Task<List<PublicCircleSummaryDto>> GetPublicCirclesAsync(int userId, int? categoryId)
+    {
+        var query = _db.Circles
+            .Where(c => c.Status == CircleStatus.Forming)
+            .Include(c => c.Organizer)
+            .Include(c => c.Category)
+            .Include(c => c.Members)
+            .Include(c => c.JoinRequests.Where(r => r.UserId == userId))
+            .AsQueryable();
+
+        if (categoryId.HasValue)
+        {
+            query = query.Where(c => c.CategoryId == categoryId.Value);
+        }
+
+        var circles = await query.ToListAsync();
+
+        return circles.Select(c => new PublicCircleSummaryDto(
+            c.Id,
+            c.Name,
+            c.Contribution,
+            c.MeetingLabel,
+            (int)c.Status,
+            c.Members.Count,
+            c.Organizer is not null ? $"{c.Organizer.FirstName} {c.Organizer.LastName}" : "Unknown",
+            c.OrganizerId,
+            c.Category?.Name,
+            c.JoinRequests.Any(r => r.UserId == userId && r.Status == CircleJoinRequestStatus.Pending),
+            c.Members.Any(m => m.UserId == userId)
+        )).ToList();
+    }
+
+    public async Task<JoinRequestDto> SubmitJoinRequestAsync(int circleId, int userId, SubmitJoinRequestDto dto)
+    {
+        var circle = await _db.Circles
+            .Include(c => c.Members)
+            .Include(c => c.JoinRequests.Where(r => r.UserId == userId))
+            .FirstOrDefaultAsync(c => c.Id == circleId)
+            ?? throw new KeyNotFoundException("Circle not found.");
+
+        if (circle.Status != CircleStatus.Forming)
+            throw new InvalidOperationException("You can only request to join a circle that is currently forming.");
+
+        if (circle.Members.Any(m => m.UserId == userId))
+            throw new InvalidOperationException("Already a member.");
+
+        if (circle.JoinRequests.Any(r => r.UserId == userId && r.Status == CircleJoinRequestStatus.Pending))
+            throw new InvalidOperationException("Join request already pending.");
+
+        var request = new CircleJoinRequest
+        {
+            CircleId = circleId,
+            UserId = userId,
+            Status = CircleJoinRequestStatus.Pending,
+            AgreedToTerms = dto.AgreedToTerms,
+            Message = dto.Message,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        _db.CircleJoinRequests.Add(request);
+        await _db.SaveChangesAsync();
+
+        // Load user for the response
+        var user = await _db.Users.FindAsync(userId);
+
+        return new JoinRequestDto(
+            request.Id,
+            request.CircleId,
+            request.UserId,
+            user is not null ? $"{user.FirstName} {user.LastName}" : "Unknown",
+            user?.PhoneNumber ?? "",
+            (int)request.Status,
+            request.AgreedToTerms,
+            request.Message,
+            request.CreatedAt
+        );
+    }
+
+    public async Task<List<JoinRequestDto>> GetJoinRequestsAsync(int circleId, int organizerId)
+    {
+        var circle = await _db.Circles.FindAsync(circleId)
+            ?? throw new KeyNotFoundException("Circle not found.");
+
+        if (circle.OrganizerId != organizerId)
+            throw new UnauthorizedAccessException("Only the organizer can view join requests.");
+
+        var requests = await _db.CircleJoinRequests
+            .Where(r => r.CircleId == circleId && r.Status == CircleJoinRequestStatus.Pending)
+            .Include(r => r.User)
+            .ToListAsync();
+
+        return requests.Select(r => new JoinRequestDto(
+            r.Id,
+            r.CircleId,
+            r.UserId,
+            r.User is not null ? $"{r.User.FirstName} {r.User.LastName}" : "Unknown",
+            r.User?.PhoneNumber ?? "",
+            (int)r.Status,
+            r.AgreedToTerms,
+            r.Message,
+            r.CreatedAt
+        )).ToList();
+    }
+
+    public async Task<JoinRequestDto> ReviewJoinRequestAsync(int circleId, int requestId, int organizerId, ReviewJoinRequestDto dto)
+    {
+        var request = await _db.CircleJoinRequests
+            .Include(r => r.User)
+            .FirstOrDefaultAsync(r => r.Id == requestId)
+            ?? throw new KeyNotFoundException("Join request not found.");
+
+        var circle = await _db.Circles.FindAsync(circleId)
+            ?? throw new KeyNotFoundException("Circle not found.");
+
+        if (circle.OrganizerId != organizerId)
+            throw new UnauthorizedAccessException("Only the organizer can review join requests.");
+
+        if (request.Status != CircleJoinRequestStatus.Pending)
+            throw new InvalidOperationException("Already reviewed.");
+
+        if (dto.Approved)
+        {
+            request.Status = CircleJoinRequestStatus.Approved;
+            request.ReviewedAt = DateTime.UtcNow;
+
+            _db.CircleMembers.Add(new CircleMember
+            {
+                CircleId = circleId,
+                UserId = request.UserId,
+                PayoutOrder = 0,
+                JoinedAt = DateTime.UtcNow
+            });
+        }
+        else
+        {
+            request.Status = CircleJoinRequestStatus.Rejected;
+            request.ReviewedAt = DateTime.UtcNow;
+        }
+
+        await _db.SaveChangesAsync();
+
+        return new JoinRequestDto(
+            request.Id,
+            request.CircleId,
+            request.UserId,
+            request.User is not null ? $"{request.User.FirstName} {request.User.LastName}" : "Unknown",
+            request.User?.PhoneNumber ?? "",
+            (int)request.Status,
+            request.AgreedToTerms,
+            request.Message,
+            request.CreatedAt
         );
     }
 

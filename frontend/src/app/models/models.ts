@@ -212,6 +212,7 @@ export interface CreateCircle {
   name: string;
   contribution: number;
   meetingLabel: string;
+  categoryId?: number;
 }
 
 export interface AddMember {
@@ -268,6 +269,41 @@ export interface MemberHome {
   currentRoundNumber?: number;
   payoutOrder: number;
   winnerHistory: RoundWinner[];
+}
+
+export interface JoinRequest {
+  id: number;
+  circleId: number;
+  userId: number;
+  userName: string;
+  userPhone: string;
+  status: number; // 0=Pending, 1=Approved, 2=Rejected
+  agreedToTerms: boolean;
+  message?: string;
+  createdAt: string;
+}
+
+export interface SubmitJoinRequest {
+  agreedToTerms: boolean;
+  message?: string;
+}
+
+export interface ReviewJoinRequest {
+  approved: boolean;
+}
+
+export interface PublicCircleSummary {
+  id: number;
+  name: string;
+  contribution: number;
+  meetingLabel: string;
+  status: number;
+  memberCount: number;
+  organizerName: string;
+  organizerId: number;
+  categoryName?: string;
+  hasPendingRequest: boolean;
+  isMember: boolean;
 }
 
 // ===== Round Models =====

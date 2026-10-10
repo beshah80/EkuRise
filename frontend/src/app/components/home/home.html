@@ -123,5 +123,72 @@
       </div>
     </section>
 
+    <!-- Browse & Join Circles Section -->
+    <section class="public-circles-section">
+      <div class="section-title">
+        <h2>Browse &amp; Join Circles</h2>
+        <p>Find a forming circle and request to join</p>
+      </div>
+      <div class="circles-grid">
+        @for (circle of publicCircles(); track circle.id) {
+          <div class="circle-card">
+            <div class="circle-top">
+              <h3>{{circle.name}}</h3>
+              @if (circle.isMember) {
+                <span class="badge active-badge">Member</span>
+              } @else if (circle.hasPendingRequest) {
+                <span class="badge pending-badge">Pending Approval</span>
+              } @else {
+                <span class="badge">Forming</span>
+              }
+            </div>
+            @if (circle.categoryName) {
+              <div class="circle-category">{{circle.categoryName}}</div>
+            }
+            <div class="circle-amount">{{circle.contribution | number}} ETB <span>/ {{circle.meetingLabel}}</span></div>
+            <div class="circle-meta">
+              <span>👥 {{circle.memberCount}} members</span>
+              <span>👤 {{circle.organizerName}}</span>
+            </div>
+            @if (!circle.isMember && !circle.hasPendingRequest) {
+              <button class="btn-join" (click)="openJoinModal(circle)">Request to Join</button>
+            }
+          </div>
+        } @empty {
+          <div class="empty-circles">
+            <span class="empty-icon">🔍</span>
+            <p>No forming circles available to join right now.</p>
+          </div>
+        }
+      </div>
+    </section>
+
   </div>
 </div>
+
+<!-- Join Request Modal -->
+@if (selectedJoinCircle()) {
+  <div class="modal-overlay" (click)="closeJoinModal()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <h3>Request to Join: {{selectedJoinCircle()!.name}}</h3>
+      <p>Contribution: <strong>{{selectedJoinCircle()!.contribution | number}} ETB / {{selectedJoinCircle()!.meetingLabel}}</strong></p>
+      @if (joinError()) {
+        <div class="banner error">{{joinError()}}</div>
+      }
+      <div class="field">
+        <label class="checkbox-label">
+          <input type="checkbox" [checked]="joinAgreed()" (change)="joinAgreed.set(!joinAgreed())" />
+          I agree to contribute {{selectedJoinCircle()!.contribution | number}} ETB every round
+        </label>
+      </div>
+      <div class="field">
+        <label>Message (optional)</label>
+        <textarea placeholder="Introduce yourself..." rows="3" (input)="joinMessage.set($any($event.target).value)">{{joinMessage()}}</textarea>
+      </div>
+      <div class="modal-btns">
+        <button class="btn-primary" (click)="submitJoinRequest()" [disabled]="!joinAgreed() || joinLoading()">{{joinLoading() ? 'Submitting...' : 'Submit Request'}}</button>
+        <button class="btn-ghost" (click)="closeJoinModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+}

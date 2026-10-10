@@ -3,7 +3,8 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import {
-  CreateCircle, AddMember, CircleSummary, CircleDetail, MemberDto, MemberHome
+  CreateCircle, AddMember, CircleSummary, CircleDetail, MemberDto, MemberHome,
+  PublicCircleSummary, JoinRequest, SubmitJoinRequest, ReviewJoinRequest
 } from '../models/models';
 
 @Injectable({ providedIn: 'root' })
@@ -37,5 +38,22 @@ export class CircleService {
 
   getMemberStatus(circleId: number): Observable<MemberHome> {
     return this.http.get<MemberHome>(`${this.baseUrl}/${circleId}/my-status`);
+  }
+
+  getPublicCircles(categoryId?: number): Observable<PublicCircleSummary[]> {
+    const params = categoryId != null ? `?categoryId=${categoryId}` : '';
+    return this.http.get<PublicCircleSummary[]>(`${this.baseUrl}/public${params}`);
+  }
+
+  submitJoinRequest(circleId: number, data: SubmitJoinRequest): Observable<JoinRequest> {
+    return this.http.post<JoinRequest>(`${this.baseUrl}/${circleId}/join`, data);
+  }
+
+  getJoinRequests(circleId: number): Observable<JoinRequest[]> {
+    return this.http.get<JoinRequest[]>(`${this.baseUrl}/${circleId}/join-requests`);
+  }
+
+  reviewJoinRequest(circleId: number, requestId: number, data: ReviewJoinRequest): Observable<JoinRequest> {
+    return this.http.put<JoinRequest>(`${this.baseUrl}/${circleId}/join-requests/${requestId}`, data);
   }
 }

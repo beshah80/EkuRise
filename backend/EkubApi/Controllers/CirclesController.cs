@@ -114,4 +114,56 @@ public class CirclesController : BaseController
         var status = await _circleService.GetMemberHomeAsync(circleId, userId);
         return status is null ? NotFound() : Ok(status);
     }
+
+    /// <summary>
+    /// List all public forming circles. Authenticated users see their pending-request and member status.
+    /// </summary>
+    [HttpGet("public")]
+    [ProducesResponseType(typeof(List<PublicCircleSummaryDto>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<List<PublicCircleSummaryDto>>> GetPublicCircles([FromQuery] int? categoryId)
+    {
+        var userId = GetUserId();
+        var circles = await _circleService.GetPublicCirclesAsync(userId, categoryId);
+        return Ok(circles);
+    }
+
+    /// <summary>
+    /// Submit a request to join a forming circle. The requester must agree to terms.
+    /// </summary>
+    [HttpPost("{circleId}/join")]
+    [ProducesResponseType(typeof(JoinRequestDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<JoinRequestDto>> SubmitJoinRequest(int circleId, [FromBody] SubmitJoinRequestDto dto)
+    {
+        var userId = GetUserId();
+        var request = await _circleService.SubmitJoinRequestAsync(circleId, userId, dto);
+        return Created(string.Empty, request);
+    }
+
+    /// <summary>
+    /// Get all pending join requests for a circle. Organizer only.
+    /// </summary>
+    [HttpGet("{circleId}/join-requests")]
+    [ProducesResponseType(typeof(List<JoinRequestDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<List<JoinRequestDto>>> GetJoinRequests(int circleId)
+    {
+        var organizerId = GetUserId();
+        var requests = await _circleService.GetJoinRequestsAsync(circleId, organizerId);
+        return Ok(requests);
+    }
+
+    /// <summary>
+    /// Approve or reject a join request. Organizer only.
+    /// </summary>
+    [HttpPut("{circleId}/join-requests/{requestId}")]
+    [ProducesResponseType(typeof(JoinRequestDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<JoinRequestDto>> ReviewJoinRequest(int circleId, int requestId, [FromBody] ReviewJoinRequestDto dto)
+    {
+        var organizerId = GetUserId();
+        var result = await _circleService.ReviewJoinRequestAsync(circleId, requestId, organizerId, dto);
+        return Ok(result);
+    }
 }

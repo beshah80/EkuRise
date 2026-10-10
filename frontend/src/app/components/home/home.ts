@@ -3,7 +3,7 @@ import { Router, RouterLink } from '@angular/router';
 import { DecimalPipe } from '@angular/common';
 import { CatalogService } from '../../services/catalog.service';
 import { CircleService } from '../../services/circle.service';
-import { Category, SubCategory, CircleSummary } from '../../models/models';
+import { Category, SubCategory, CircleSummary, PublicCircleSummary, SubmitJoinRequest } from '../../models/models';
 
 @Component({
   standalone: true,
@@ -20,13 +20,22 @@ export class Home {
   categories = signal<Category[]>([]);
   subCategories = signal<SubCategory[]>([]);
   circles = signal<CircleSummary[]>([]);
+  publicCircles = signal<PublicCircleSummary[]>([]);
   selectedCategory = signal<number | null>(null);
   loading = signal(true);
   error = signal('');
 
+  // Join modal state
+  selectedJoinCircle = signal<PublicCircleSummary | null>(null);
+  joinAgreed = signal(false);
+  joinMessage = signal('');
+  joinLoading = signal(false);
+  joinError = signal('');
+
   ngOnInit() {
     this.loadCategories();
     this.loadCircles();
+    this.loadPublicCircles();
   }
 
   loadCategories() {
@@ -46,6 +55,13 @@ export class Home {
     });
   }
 
+  loadPublicCircles() {
+    this.circleService.getPublicCircles().subscribe({
+      next: (circles) => this.publicCircles.set(circles),
+      error: () => {}
+    });
+  }
+
   selectCategory(id: number) {
     this.selectedCategory.set(id);
     this.catalog.getSubCategories(id).subscribe({
@@ -60,6 +76,40 @@ export class Home {
 
   viewCircle(id: number) {
     this.router.navigate(['/circles', id]);
+  }
+
+  openJoinModal(circle: PublicCircleSummary) {
+    this.selectedJoinCircle.set(circle);
+    this.joinAgreed.set(false);
+    this.joinMessage.set('');
+    this.joinError.set('');
+  }
+
+  closeJoinModal() {
+    this.selectedJoinCircle.set(null);
+    this.joinAgreed.set(false);
+    this.joinMessage.set('');
+    this.joinError.set('');
+    this.joinLoading.set(false);
+  }
+
+  submitJoinRequest() {
+    const circle = this.selectedJoinCircle();
+    if (!circle || !this.joinAgreed()) return;
+    this.joinLoading.set(true);
+    this.joinError.set('');
+    const data: SubmitJoinRequest = { agreedToTerms: true, message: this.joinMessage() || undefined };
+    this.circleService.submitJoinRequest(circle.id, data).subscribe({
+      next: () => {
+        this.joinLoading.set(false);
+        this.loadPublicCircles();
+        this.closeJoinModal();
+      },
+      error: (err: any) => {
+        this.joinLoading.set(false);
+        this.joinError.set(err.error?.title || err.error?.message || 'Failed to submit request');
+      }
+    });
   }
 
   statusLabel(status: number): string {

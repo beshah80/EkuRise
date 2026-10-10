@@ -19,6 +19,8 @@ public record CreateCircleDto
     [Required(ErrorMessage = "Meeting label is required")]
     [StringLength(50, ErrorMessage = "Meeting label must not exceed 50 characters")]
     public string MeetingLabel { get; init; } = string.Empty;
+
+    public int? CategoryId { get; init; }
 }
 
 /// <summary>
@@ -101,4 +103,55 @@ public record MemberHomeDto(
     int? CurrentRoundNumber,
     int PayoutOrder,
     List<RoundWinnerDto> WinnerHistory
+);
+
+/// <summary>
+/// A pending join request as returned to the organizer.
+/// </summary>
+public record JoinRequestDto(
+    int Id,
+    int CircleId,
+    int UserId,
+    string UserName,
+    string UserPhone,
+    int Status,
+    bool AgreedToTerms,
+    string? Message,
+    DateTime CreatedAt
+);
+
+/// <summary>
+/// Submitted by a user who wants to join a public forming circle.
+/// </summary>
+public record SubmitJoinRequestDto
+{
+    [Required(ErrorMessage = "You must agree to the terms")]
+    public bool AgreedToTerms { get; init; }
+    [StringLength(500)]
+    public string? Message { get; init; }
+}
+
+/// <summary>
+/// Organizer approves or rejects a join request.
+/// </summary>
+public record ReviewJoinRequestDto
+{
+    public bool Approved { get; init; }
+}
+
+/// <summary>
+/// Public summary of a forming circle shown in the Browse &amp; Join section.
+/// </summary>
+public record PublicCircleSummaryDto(
+    int Id,
+    string Name,
+    decimal Contribution,
+    string MeetingLabel,
+    int Status,
+    int MemberCount,
+    string OrganizerName,
+    int OrganizerId,
+    string? CategoryName,
+    bool HasPendingRequest,
+    bool IsMember
 );
