@@ -61,10 +61,16 @@
                       <div class="member-name">{{ req.userName }}</div>
                       <small>{{ req.userPhone }}</small>
                       @if (req.message) { <small class="req-msg">"{{ req.message }}"</small> }
+                      <small [class]="req.hasPaid ? 'paid-badge' : 'unpaid-badge'">
+                        {{ req.hasPaid ? '✓ Contribution paid' : '⏳ Awaiting payment' }}
+                      </small>
                     </div>
                   </div>
                   <div class="req-btns">
-                    <button class="btn-approve" (click)="approveRequest(req.id)">✓ Approve</button>
+                    <button class="btn-outline btn-sm" (click)="toggleRequestPaid(req.id, !req.hasPaid)">
+                      {{ req.hasPaid ? 'Unmark Paid' : 'Mark Paid' }}
+                    </button>
+                    <button class="btn-approve" (click)="approveRequest(req.id)" [disabled]="!req.hasPaid">✓ Approve</button>
                     <button class="btn-remove" (click)="rejectRequest(req.id)">✗ Reject</button>
                   </div>
                 </div>
@@ -97,9 +103,13 @@
               <span>Round {{ currentRound()!.roundNumber }} of {{ currentRound()!.totalRounds }}</span>
               <span class="pot">{{ currentRound()!.pot.toLocaleString() }} ETB</span>
             </div>
-            @if (currentRound()!.nextReceiverName) {
+            @if (currentRound()!.receiverName) {
               <div class="next-winner-row">
-                🏆 This round's winner: <strong>{{ currentRound()!.nextReceiverName }}</strong>
+                🏆 Winner: <strong>{{ currentRound()!.receiverName }}</strong>
+              </div>
+            } @else {
+              <div class="next-winner-row scheduled">
+                🎰 Winner drawn at payout
               </div>
             }
             <div class="progress-row">
@@ -112,21 +122,18 @@
           </div>
         }
 
-        <!-- PAYOUT ROTATION TRACKER -->
+        <!-- PAYOUT QUEUE -->
         <div class="card">
           <h3>Payout Queue</h3>
-          <p class="queue-subtitle">Fixed order set at start — each member receives once</p>
+          <p class="queue-subtitle">Winner drawn randomly each round — each member receives once</p>
           <div class="rotation-track">
             @for (m of circle()!.members; track m.userId) {
               <div class="rotation-step"
                 [class.done]="m.hasReceived"
-                [class.current]="!m.hasReceived && m.payoutOrder === currentRound()?.roundNumber"
-                [class.waiting]="!m.hasReceived && m.payoutOrder !== currentRound()?.roundNumber">
+                [class.waiting]="!m.hasReceived">
                 <div class="step-bubble">
                   @if (m.hasReceived) {
                     <span class="step-icon">✓</span>
-                  } @else if (m.payoutOrder === currentRound()?.roundNumber) {
-                    <span class="step-icon">🏆</span>
                   } @else {
                     <span class="step-num">{{ m.payoutOrder }}</span>
                   }

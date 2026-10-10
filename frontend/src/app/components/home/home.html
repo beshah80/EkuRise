@@ -170,25 +170,95 @@
 @if (selectedJoinCircle()) {
   <div class="modal-overlay" (click)="closeJoinModal()">
     <div class="modal-card" (click)="$event.stopPropagation()">
-      <h3>Request to Join: {{selectedJoinCircle()!.name}}</h3>
-      <p>Contribution: <strong>{{selectedJoinCircle()!.contribution | number}} ETB / {{selectedJoinCircle()!.meetingLabel}}</strong></p>
+
+      <!-- Step indicator -->
+      <div class="modal-steps">
+        <div class="step" [class.active]="joinStep() === 'info'" [class.done]="joinStep() !== 'info'">1</div>
+        <div class="step-line"></div>
+        <div class="step" [class.active]="joinStep() === 'payment'" [class.done]="joinStep() === 'confirm'">2</div>
+        <div class="step-line"></div>
+        <div class="step" [class.active]="joinStep() === 'confirm'">3</div>
+      </div>
+
       @if (joinError()) {
         <div class="banner error">{{joinError()}}</div>
       }
-      <div class="field">
-        <label class="checkbox-label">
-          <input type="checkbox" [checked]="joinAgreed()" (change)="joinAgreed.set(!joinAgreed())" />
-          I agree to contribute {{selectedJoinCircle()!.contribution | number}} ETB every round
-        </label>
-      </div>
-      <div class="field">
-        <label>Message (optional)</label>
-        <textarea placeholder="Introduce yourself..." rows="3" (input)="joinMessage.set($any($event.target).value)">{{joinMessage()}}</textarea>
-      </div>
-      <div class="modal-btns">
-        <button class="btn-primary" (click)="submitJoinRequest()" [disabled]="!joinAgreed() || joinLoading()">{{joinLoading() ? 'Submitting...' : 'Submit Request'}}</button>
-        <button class="btn-ghost" (click)="closeJoinModal()">Cancel</button>
-      </div>
+
+      <!-- STEP 1: Circle info + agree -->
+      @if (joinStep() === 'info') {
+        <h3>Join: {{selectedJoinCircle()!.name}}</h3>
+        <div class="join-info-row">
+          <span>💰 Contribution</span>
+          <strong>{{selectedJoinCircle()!.contribution | number}} ETB / {{selectedJoinCircle()!.meetingLabel}}</strong>
+        </div>
+        <div class="join-info-row">
+          <span>👥 Organizer</span>
+          <strong>{{selectedJoinCircle()!.organizerName}}</strong>
+        </div>
+        <div class="join-info-row">
+          <span>👤 Members so far</span>
+          <strong>{{selectedJoinCircle()!.memberCount}}</strong>
+        </div>
+        <div class="field">
+          <label class="checkbox-label">
+            <input type="checkbox" [checked]="joinAgreed()" (change)="joinAgreed.set(!joinAgreed())" />
+            I agree to contribute {{selectedJoinCircle()!.contribution | number}} ETB every round until the circle completes
+          </label>
+        </div>
+        <div class="modal-btns">
+          <button class="btn-primary" [disabled]="!joinAgreed()" (click)="joinStep.set('payment')">Next: Pay Contribution →</button>
+          <button class="btn-ghost" (click)="closeJoinModal()">Cancel</button>
+        </div>
+      }
+
+      <!-- STEP 2: Payment instructions -->
+      @if (joinStep() === 'payment') {
+        <h3>💳 Pay Your First Contribution</h3>
+        <p class="payment-note">Transfer <strong>{{selectedJoinCircle()!.contribution | number}} ETB</strong> to the organizer using one of the methods below, then confirm below.</p>
+        <div class="payment-methods">
+          <div class="payment-method">
+            <div class="pm-icon">📱</div>
+            <div>
+              <div class="pm-label">Telebirr</div>
+              <div class="pm-value">0912-345-678</div>
+              <div class="pm-name">{{selectedJoinCircle()!.organizerName}}</div>
+            </div>
+          </div>
+          <div class="payment-method">
+            <div class="pm-icon">🏦</div>
+            <div>
+              <div class="pm-label">CBE Birr</div>
+              <div class="pm-value">1000-1234-5678</div>
+              <div class="pm-name">{{selectedJoinCircle()!.organizerName}}</div>
+            </div>
+          </div>
+        </div>
+        <div class="field">
+          <label class="checkbox-label paid-check">
+            <input type="checkbox" [checked]="joinHasPaid()" (change)="joinHasPaid.set(!joinHasPaid())" />
+            I have sent the payment of {{selectedJoinCircle()!.contribution | number}} ETB
+          </label>
+        </div>
+        <div class="modal-btns">
+          <button class="btn-primary" [disabled]="!joinHasPaid()" (click)="joinStep.set('confirm')">Next: Confirm Request →</button>
+          <button class="btn-ghost" (click)="joinStep.set('info')">← Back</button>
+        </div>
+      }
+
+      <!-- STEP 3: Optional message + submit -->
+      @if (joinStep() === 'confirm') {
+        <h3>✅ Almost Done!</h3>
+        <p class="payment-note">Your payment will be verified by the organizer before your request is approved.</p>
+        <div class="field">
+          <label>Message to organizer (optional)</label>
+          <textarea placeholder="e.g. I sent via Telebirr at 3pm..." rows="3" (input)="joinMessage.set($any($event.target).value)">{{joinMessage()}}</textarea>
+        </div>
+        <div class="modal-btns">
+          <button class="btn-primary" (click)="submitJoinRequest()" [disabled]="joinLoading()">{{joinLoading() ? 'Submitting...' : 'Submit Request'}}</button>
+          <button class="btn-ghost" (click)="joinStep.set('payment')">← Back</button>
+        </div>
+      }
+
     </div>
   </div>
 }

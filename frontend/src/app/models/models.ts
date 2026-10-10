@@ -279,6 +279,7 @@ export interface JoinRequest {
   userPhone: string;
   status: number; // 0=Pending, 1=Approved, 2=Rejected
   agreedToTerms: boolean;
+  hasPaid: boolean;
   message?: string;
   createdAt: string;
 }
@@ -290,6 +291,10 @@ export interface SubmitJoinRequest {
 
 export interface ReviewJoinRequest {
   approved: boolean;
+}
+
+export interface MarkJoinRequestPaid {
+  hasPaid: boolean;
 }
 
 export interface PublicCircleSummary {

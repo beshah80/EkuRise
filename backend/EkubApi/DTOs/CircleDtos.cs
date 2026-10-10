@@ -116,6 +116,7 @@ public record JoinRequestDto(
     string UserPhone,
     int Status,
     bool AgreedToTerms,
+    bool HasPaid,
     string? Message,
     DateTime CreatedAt
 );
@@ -132,11 +133,19 @@ public record SubmitJoinRequestDto
 }
 
 /// <summary>
-/// Organizer approves or rejects a join request.
+/// Organizer approves or rejects a join request. Approval is blocked until HasPaid is true.
 /// </summary>
 public record ReviewJoinRequestDto
 {
     public bool Approved { get; init; }
+}
+
+/// <summary>
+/// Organizer marks a join request as paid (contribution received offline).
+/// </summary>
+public record MarkJoinRequestPaidDto
+{
+    public bool HasPaid { get; init; }
 }
 
 /// <summary>

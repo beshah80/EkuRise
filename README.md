@@ -14,7 +14,7 @@
 
 - Frontend: Angular 17 with TypeScript
 - Backend: ASP.NET Core Web API (.NET 10)
-- Database: SQLite / PostgreSQL
+- Database: PostgreSQL (Supabase)
 - ORM: Entity Framework Core
 - Authentication: JWT Bearer Token, Phone OTP, and PIN Login
 
@@ -105,7 +105,7 @@ EkuRise brings this centuries-old system into a mobile-first digital platform. I
 ### Circle Management (Private Circles)
 - Any user can create their own private circle with a name, contribution amount, and meeting label
 - **Forming state:** organizer adds members by phone number, removes members, sees the list
-- Start Circle: locks the member list, assigns fixed payout order (by join time), creates one round per member, opens the first round
+- Start Circle: locks the member list, creates one round per member, opens the first round — **winner is drawn randomly at payout time, not pre-assigned**
 - **Active state:** rounds run one by one, organizer manages payments and payouts
 - **Completed state:** circle summary shows who received which round and when
 
@@ -114,14 +114,15 @@ EkuRise brings this centuries-old system into a mobile-first digital platform. I
 - Organizer sees payment toggles for each member (checkbox to mark paid/unpaid)
 - Pot updates in real time as payments are marked (paid count × contribution)
 - Pay Out button is only enabled when every single member is marked paid
-- Payout goes to the next member in the fixed order — not a typed name
+- Payout triggers a **live random draw** from members who haven't received yet — animated spin reveals the winner
+- Winner notification sent automatically to the drawn member and all other members
 - After payout, organizer sees "Open Next Round" button
 - Round history with filter by round number and status (Open / Paid Out)
 
 ### Member View
 - Members see: their payment status this round (Paid ✓ / Unpaid)
 - Members see: whether they have received the pot yet (Yes / Not yet)
-- Members see: the payout order list showing all members with their position
+- Members see: the member list showing who has received and who is still waiting
 - Members see: full round history — who won each round, when, for how much
 
 ### Notifications
@@ -158,7 +159,7 @@ EkuRise brings this centuries-old system into a mobile-first digital platform. I
   - Create new main categories
   - Create sub-categories with full details, contribution, rounds, total pot, and terms and conditions
   - Track member capacity in real-time
-  - Start an Ekub — auto-creates a Circle from all joined members, locks rosters, sets payout order, and opens Round 1
+  - Start an Ekub — auto-creates a Circle from all joined members, locks rosters, and opens Round 1
 - **Success Stories Moderation:** Review member submissions, star ratings, and approve or delete testimonials directly from the web interface.
 - **User Directory & RBAC:** Search members by name, phone, location, or occupation; toggle administrator privileges.
 - **Support Inbox:** Inspect submitted user inquiries and update status (Pending / Reviewed).
@@ -170,13 +171,14 @@ EkuRise brings this centuries-old system into a mobile-first digital platform. I
 These rules cannot be bypassed from the frontend — the API enforces them:
 
 1. **Payout requires all members paid** — if even one member is unpaid, the API returns 400 with the names of unpaid members
-2. **Fixed payout order** — the receiver of each round is determined by their position in the order set at Start, never by typing a name
+2. **Random live draw** — the winner of each round is randomly selected server-side from members who haven't received yet; no one knows the winner until payout
 3. **Receive once only** — a member can receive the pot at most once per circle. A second payout attempt to the same member returns 400
 4. **No double payout** — paying out a round that is already paid out returns 400
 5. **No joining twice** — a user cannot join the same Ekub sub-category twice, returns 400
 6. **Members still pay after receiving** — a member who has received the pot stays on the payment list and must continue paying for remaining rounds
 7. **Start requires minimum 2 members** — the Start button is disabled and the API rejects it with fewer than 2 members
 8. **Forming-only operations** — adding/removing members and starting the circle is only possible while status is Forming
+9. **Join request requires payment** — organizer must mark a join request as paid before approving it
 
 ---
 
@@ -190,7 +192,8 @@ These rules cannot be bypassed from the frontend — the API enforces them:
 | EkubSubCategories | Specific Ekub plans with contribution, rounds, total, start date, T&C |
 | EkubSubscriptions | Records user joining a sub-category after agreeing to T&C |
 | Circles | Private rotating savings groups (Forming → Active → Completed) |
-| CircleMembers | Members with fixed payout order and received flag |
+| CircleMembers | Members with display order and received flag |
+| CircleJoinRequests | Member requests to join a forming circle, with payment confirmation |
 | Rounds | One per member (Pending → Open → PaidOut) |
 | Payments | One per member per round — paid status, paid date, late fine |
 | Notifications | All app notifications with type, read status, circle/round links |
@@ -230,12 +233,18 @@ GET  /api/catalog/my-ekubs                            My joined Ekubs
 
 ### Circles
 ```
-POST   /api/circles                          Create circle
-GET    /api/circles                          My circles
-GET    /api/circles/{id}                     Circle detail
-POST   /api/circles/{id}/members             Add member by phone
-DELETE /api/circles/{id}/members/{userId}    Remove member
-POST   /api/circles/{id}/start               Start circle
+POST   /api/circles                                        Create circle
+GET    /api/circles                                        My circles
+GET    /api/circles/{id}                                   Circle detail
+GET    /api/circles/{id}/my-status                         Member home status
+POST   /api/circles/{id}/members                           Add member by phone (organizer)
+DELETE /api/circles/{id}/members/{userId}                  Remove member (organizer)
+POST   /api/circles/{id}/start                             Start circle (organizer)
+GET    /api/circles/public                                 Browse forming circles
+POST   /api/circles/{id}/join                              Submit join request
+GET    /api/circles/{id}/join-requests                     View join requests (organizer)
+PUT    /api/circles/{id}/join-requests/{requestId}/mark-paid  Mark requester as paid (organizer)
+PUT    /api/circles/{id}/join-requests/{requestId}         Approve or reject request (organizer)
 ```
 
 ### Rounds
@@ -323,3 +332,6 @@ hackaton/
 - **Ekub catalog** — admin-managed public Ekub catalog with categories and sub-categories
 - **Terms and conditions** per sub-category — users must agree before joining
 - **Completed circle summary** — full table of who received which round and when
+- **Live random winner draw** — animated spin at payout time draws winner server-side from eligible members
+- **Join request flow** — members request to join forming circles, pay contribution, organizer confirms payment then approves
+- **Winner notifications** — automatic in-app notification to winner and all members after each payout

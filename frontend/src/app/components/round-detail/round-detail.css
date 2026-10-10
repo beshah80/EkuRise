@@ -9,7 +9,55 @@
 .pot-card { text-align: center; border-left: 4px solid #F2B705; }
 .pot-amount { font-size: 32px; font-weight: 700; color: #0F6B2D; }
 .pot-label { font-size: 12px; color: #888; margin-bottom: 4px; }
-.receiver { margin-top: 10px; color: #0F6B2D; font-size: 14px; }
+.receiver { margin-top: 10px; font-size: 14px; }
+.scheduled-receiver { color: #888; background: #f8f9fa; border-radius: 8px; padding: 8px 12px; }
+.scheduled-receiver strong { color: #555; }
+.winner-receiver { color: #0F6B2D; background: #e8f5e9; border-radius: 8px; padding: 8px 12px; font-weight: 600; }
+.winner-receiver strong { color: #0F6B2D; }
+
+/* Spin overlay */
+.spin-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.75);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 999;
+}
+.spin-card {
+  background: white; border-radius: 20px; padding: 36px 32px;
+  text-align: center; width: 280px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+.spin-title { font-size: 18px; font-weight: 700; color: #111; margin-bottom: 24px; }
+.spin-drum {
+  background: #0F6B2D; border-radius: 14px; padding: 20px;
+  margin-bottom: 16px; min-height: 72px;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+}
+.spin-name {
+  font-size: 32px; font-weight: 900; color: #F2B705;
+  animation: spinFlicker 0.08s linear infinite;
+  letter-spacing: 1px;
+}
+@keyframes spinFlicker {
+  0% { opacity: 1; transform: translateY(0); }
+  50% { opacity: 0.4; transform: translateY(-4px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+.spin-hint { font-size: 12px; color: #aaa; }
+
+/* Winner reveal */
+.winner-reveal { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 8px 0; }
+.winner-trophy { font-size: 56px; animation: trophyPop 0.4s ease-out; }
+@keyframes trophyPop {
+  0% { transform: scale(0.3); opacity: 0; }
+  70% { transform: scale(1.2); }
+  100% { transform: scale(1); opacity: 1; }
+}
+.winner-label { font-size: 13px; font-weight: 700; color: #F2B705; text-transform: uppercase; letter-spacing: 2px; }
+.winner-name { font-size: 28px; font-weight: 900; color: #111; text-align: center; }
+.winner-amount { font-size: 22px; font-weight: 800; color: #0F6B2D; }
+.winner-sub { font-size: 13px; color: #aaa; }
+.btn-winner-close { margin-top: 8px; background: #0F6B2D; color: white; border: none; padding: 14px 32px; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; width: 100%; }
 .payments-table { width: 100%; border-collapse: collapse; font-size: 13px; }
 .payments-table th { text-align: left; padding: 8px 4px; color: #888; border-bottom: 1px solid #eee; font-size: 12px; }
 .payments-table td { padding: 10px 4px; border-bottom: 1px solid #f5f5f5; }

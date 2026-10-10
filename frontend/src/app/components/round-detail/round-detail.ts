@@ -26,8 +26,14 @@ export class RoundDetail {
   success = signal('');
   confirmPayout = signal(false);
   payoutResult = signal<PayoutResult | null>(null);
+  spinning = signal(false);
+  spinRevealed = signal(false);
+  spinName = signal('');
   circleId = 0;
   isOrganizer = false;
+
+  private spinInterval: any;
+  private spinNames: string[] = [];
 
   ngOnInit() {
     this.circleId = Number(this.route.snapshot.paramMap.get('id'));
@@ -57,11 +63,44 @@ export class RoundDetail {
 
   payout() {
     this.confirmPayout.set(false);
-    this.loading.set(true);
-    this.roundService.payOut(this.circleId, this.round()!.id).subscribe({
-      next: (res) => { this.loading.set(false); this.payoutResult.set(res); this.loadRound(); },
-      error: (err: any) => { this.loading.set(false); this.error.set(err.error?.title || 'Payout failed'); }
-    });
+    this.spinNames = this.round()?.payments.map(p => p.memberName.split(' ')[0]) ?? [];
+    this.spinning.set(true);
+    this.spinRevealed.set(false);
+    this.error.set('');
+    let i = 0;
+    this.spinInterval = setInterval(() => {
+      this.spinName.set(this.spinNames[i % this.spinNames.length]);
+      i++;
+    }, 80);
+    setTimeout(() => {
+      this.roundService.payOut(this.circleId, this.round()!.id).subscribe({
+        next: (res) => {
+          clearInterval(this.spinInterval);
+          // slow down then stop on winner
+          let slowCount = 0;
+          const slowInterval = setInterval(() => {
+            this.spinName.set(res.receiverName.split(' ')[0]);
+            slowCount++;
+            if (slowCount >= 6) {
+              clearInterval(slowInterval);
+              this.spinRevealed.set(true);
+              this.payoutResult.set(res);
+            }
+          }, 200);
+        },
+        error: (err: any) => {
+          clearInterval(this.spinInterval);
+          this.spinning.set(false);
+          this.error.set(err.error?.message || err.error?.title || 'Payout failed');
+        }
+      });
+    }, 2500);
+  }
+
+  dismissWinner() {
+    this.spinning.set(false);
+    this.spinRevealed.set(false);
+    this.loadRound();
   }
 
   openNext() {

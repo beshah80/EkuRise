@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import {
   CreateCircle, AddMember, CircleSummary, CircleDetail, MemberDto, MemberHome,
-  PublicCircleSummary, JoinRequest, SubmitJoinRequest, ReviewJoinRequest
+  PublicCircleSummary, JoinRequest, SubmitJoinRequest, ReviewJoinRequest, MarkJoinRequestPaid
 } from '../models/models';
 
 @Injectable({ providedIn: 'root' })
@@ -55,5 +55,9 @@ export class CircleService {
 
   reviewJoinRequest(circleId: number, requestId: number, data: ReviewJoinRequest): Observable<JoinRequest> {
     return this.http.put<JoinRequest>(`${this.baseUrl}/${circleId}/join-requests/${requestId}`, data);
+  }
+
+  markJoinRequestPaid(circleId: number, requestId: number, hasPaid: boolean): Observable<JoinRequest> {
+    return this.http.put<JoinRequest>(`${this.baseUrl}/${circleId}/join-requests/${requestId}/mark-paid`, { hasPaid } as MarkJoinRequestPaid);
   }
 }

@@ -15,4 +15,5 @@ public interface ICircleService
     Task<JoinRequestDto> SubmitJoinRequestAsync(int circleId, int userId, SubmitJoinRequestDto dto);
     Task<List<JoinRequestDto>> GetJoinRequestsAsync(int circleId, int organizerId);
     Task<JoinRequestDto> ReviewJoinRequestAsync(int circleId, int requestId, int organizerId, ReviewJoinRequestDto dto);
+    Task<JoinRequestDto> MarkJoinRequestPaidAsync(int circleId, int requestId, int organizerId, bool hasPaid);
 }

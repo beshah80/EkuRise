@@ -20,7 +20,7 @@ var activeConnection = ResolveSupabaseConnection(defaultConnection);
 
 // --- Database ---
 builder.Services.AddDbContext<EkubDbContext>(options =>
-    options.UseNpgsql(activeConnection));
+    options.UseNpgsql(activeConnection, o => o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)));
 
 // --- Services (DI) ---
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -251,7 +251,7 @@ static async Task SeedDataAsync(EkubDbContext db)
             {
                 CategoryId = categories[0].Id, Name = "Daily 300 ETB", DailyContribution = 300, TotalRounds = 105,
                 TotalAmount = 31500, StartDate = new DateTime(2026, 10, 5, 0, 0, 0, DateTimeKind.Utc),
-                TermsAndConditions = "By joining this Driver Equb, you agree to pay 300 ETB daily for 105 days. Payout is determined by the fixed order set at the start. Late payments may incur a 50 ETB fine per day. Missing 3 consecutive days results in removal from the circle. The organizer manages all rounds and payouts.",
+                TermsAndConditions = "By joining this Driver Equb, you agree to pay 300 ETB daily for 105 days. The winner of each round is drawn randomly and fairly. Late payments may incur a 50 ETB fine per day. Missing 3 consecutive days results in removal from the circle. The organizer manages all rounds and payouts.",
                 MaxMembers = 105, CurrentMemberCount = 1, Status = EkubSubCategoryStatus.Open,
                 CreatedByAdminId = 1, CreatedAt = DateTime.UtcNow
             },
@@ -259,7 +259,7 @@ static async Task SeedDataAsync(EkubDbContext db)
             {
                 CategoryId = categories[0].Id, Name = "Daily 500 ETB", DailyContribution = 500, TotalRounds = 60,
                 TotalAmount = 30000, StartDate = new DateTime(2026, 10, 10, 0, 0, 0, DateTimeKind.Utc),
-                TermsAndConditions = "By joining this Driver Equb, you agree to pay 500 ETB daily for 60 days. Payout follows the fixed order. Late fine is 50 ETB per day. Missing 2 consecutive days results in removal. The organizer manages all rounds and payouts.",
+                TermsAndConditions = "By joining this Driver Equb, you agree to pay 500 ETB daily for 60 days. Each round winner is drawn randomly and fairly. Late fine is 50 ETB per day. Missing 2 consecutive days results in removal. The organizer manages all rounds and payouts.",
                 MaxMembers = 60, CurrentMemberCount = 1, Status = EkubSubCategoryStatus.Open,
                 CreatedByAdminId = 1, CreatedAt = DateTime.UtcNow
             },
@@ -267,7 +267,7 @@ static async Task SeedDataAsync(EkubDbContext db)
             {
                 CategoryId = categories[1].Id, Name = "Daily 1000 ETB", DailyContribution = 1000, TotalRounds = 50,
                 TotalAmount = 50000, StartDate = new DateTime(2026, 10, 15, 0, 0, 0, DateTimeKind.Utc),
-                TermsAndConditions = "By joining this Trader Equb, you agree to pay 1000 ETB daily for 50 days. The total pot is 50,000 ETB per round. Payout follows the fixed order set at start. Late fine is 100 ETB per day. Missing 2 consecutive days results in removal.",
+                TermsAndConditions = "By joining this Trader Equb, you agree to pay 1000 ETB daily for 50 days. The total pot is 50,000 ETB per round. Each round winner is drawn randomly and fairly. Late fine is 100 ETB per day. Missing 2 consecutive days results in removal.",
                 MaxMembers = 50, CurrentMemberCount = 1, Status = EkubSubCategoryStatus.Open,
                 CreatedByAdminId = 1, CreatedAt = DateTime.UtcNow
             },
@@ -275,7 +275,7 @@ static async Task SeedDataAsync(EkubDbContext db)
             {
                 CategoryId = categories[2].Id, Name = "Monthly 2000 ETB", DailyContribution = 2000, TotalRounds = 12,
                 TotalAmount = 24000, StartDate = new DateTime(2026, 11, 1, 0, 0, 0, DateTimeKind.Utc),
-                TermsAndConditions = "By joining this Workers Equb, you agree to pay 2000 ETB monthly for 12 months. Payout follows the fixed order. Late fine is 200 ETB per week. The organizer manages all rounds and payouts.",
+                TermsAndConditions = "By joining this Workers Equb, you agree to pay 2000 ETB monthly for 12 months. Each round winner is drawn randomly and fairly. Late fine is 200 ETB per week. The organizer manages all rounds and payouts.",
                 MaxMembers = 12, CurrentMemberCount = 1, Status = EkubSubCategoryStatus.Open,
                 CreatedByAdminId = 1, CreatedAt = DateTime.UtcNow
             },
@@ -283,7 +283,7 @@ static async Task SeedDataAsync(EkubDbContext db)
             {
                 CategoryId = categories[3].Id, Name = "Daily 200 ETB", DailyContribution = 200, TotalRounds = 150,
                 TotalAmount = 30000, StartDate = new DateTime(2026, 10, 20, 0, 0, 0, DateTimeKind.Utc),
-                TermsAndConditions = "By joining this Ye Ayinet Equb, you agree to pay 200 ETB daily for 150 days. Open to all professions. Payout follows the fixed order. Late fine is 50 ETB per day. The organizer manages all rounds and payouts.",
+                TermsAndConditions = "By joining this Ye Ayinet Equb, you agree to pay 200 ETB daily for 150 days. Open to all professions. Each round winner is drawn randomly and fairly. Late fine is 50 ETB per day. The organizer manages all rounds and payouts.",
                 MaxMembers = 150, CurrentMemberCount = 1, Status = EkubSubCategoryStatus.Open,
                 CreatedByAdminId = 1, CreatedAt = DateTime.UtcNow
             }

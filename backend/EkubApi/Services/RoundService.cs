@@ -9,10 +9,12 @@ namespace EkubApi.Services;
 public class RoundService : IRoundService
 {
     private readonly EkubDbContext _db;
+    private readonly INotificationService _notifications;
 
-    public RoundService(EkubDbContext db)
+    public RoundService(EkubDbContext db, INotificationService notifications)
     {
         _db = db;
+        _notifications = notifications;
     }
 
     public async Task<List<RoundSummaryDto>> GetRoundsAsync(int circleId, int userId, int? roundNumber, RoundStatus? status)
@@ -146,20 +148,16 @@ public class RoundService : IRoundService
                 $"Cannot pay out: {unpaidMembers.Count} member(s) have not paid: {string.Join(", ", names)}.");
         }
 
-        // Rule: receiver is the next name in the fixed payout order
-        var receiver = await _db.CircleMembers
+        // Rule: receiver is randomly drawn from members who haven't received yet
+        var eligible = await _db.CircleMembers
             .Include(cm => cm.User)
-            .FirstOrDefaultAsync(cm => cm.CircleId == circleId && cm.PayoutOrder == round.RoundNumber)
-            ?? throw new InvalidOperationException("No member found for this round's payout position.");
+            .Where(cm => cm.CircleId == circleId && !cm.HasReceived)
+            .ToListAsync();
 
-        // Rule: a member may receive the pot at most once
-        if (receiver.HasReceived)
-        {
-            var receiverName = receiver.User is not null
-                ? $"{receiver.User.FirstName} {receiver.User.LastName}"
-                : "This member";
-            throw new InvalidOperationException($"{receiverName} has already received the pot.");
-        }
+        if (eligible.Count == 0)
+            throw new InvalidOperationException("No eligible members left to receive the pot.");
+
+        var receiver = eligible[new Random().Next(eligible.Count)];
 
         // Calculate pot
         var pot = payments.Count * circle.Contribution;
@@ -186,12 +184,40 @@ public class RoundService : IRoundService
         }
 
         var receiverUser = await _db.Users.FindAsync(receiver.UserId);
+        var receiverFullName = $"{receiverUser!.FirstName} {receiverUser!.LastName}";
+
+        // Notify the winner
+        await _notifications.CreateAsync(
+            receiver.UserId,
+            NotificationType.PayoutNotification,
+            "🎉 You won the pot!",
+            $"Congratulations! You received {pot:N0} ETB from Round {round.RoundNumber} of your circle.",
+            circleId,
+            round.Id
+        );
+
+        // Notify all other members who the winner is
+        var allMemberIds = await _db.CircleMembers
+            .Where(cm => cm.CircleId == circleId && cm.UserId != receiver.UserId)
+            .Select(cm => cm.UserId)
+            .ToListAsync();
+        foreach (var memberId in allMemberIds)
+        {
+            await _notifications.CreateAsync(
+                memberId,
+                NotificationType.PayoutNotification,
+                $"Round {round.RoundNumber} complete",
+                $"{receiverFullName} received {pot:N0} ETB. Next round coming up!",
+                circleId,
+                round.Id
+            );
+        }
 
         return new PayoutResultDto(
             round.Id,
             round.RoundNumber,
             receiver.UserId,
-            $"{receiverUser!.FirstName} {receiverUser!.LastName}",
+            receiverFullName,
             pot,
             round.PaidOutAt!.Value
         );
@@ -233,6 +259,24 @@ public class RoundService : IRoundService
 
         // Create payment rows for the newly opened round
         await CreatePaymentRowsForRoundAsync(nextRound.Id, circleId);
+
+        // Notify all members that a new round is open
+        var memberIds = await _db.CircleMembers
+            .Where(cm => cm.CircleId == circleId)
+            .Select(cm => cm.UserId)
+            .ToListAsync();
+        var circleName = circle.Name;
+        foreach (var memberId in memberIds)
+        {
+            await _notifications.CreateAsync(
+                memberId,
+                NotificationType.RoundOpened,
+                $"Round {nextRound.RoundNumber} is open",
+                $"Time to pay your contribution for Round {nextRound.RoundNumber} of '{circleName}'.",
+                circleId,
+                nextRound.Id
+            );
+        }
 
         return await BuildRoundDetailDto(nextRound.Id);
     }
@@ -317,12 +361,9 @@ public class RoundService : IRoundService
         var paidCount = round.Payments.Count(p => p.HasPaid);
         var pot = paidCount * circle.Contribution;
 
-        // Who is scheduled to receive this round (fixed payout order = round number)
-        var scheduledReceiver = await _db.CircleMembers
-            .Include(cm => cm.User)
-            .FirstOrDefaultAsync(cm => cm.CircleId == round.CircleId && cm.PayoutOrder == round.RoundNumber);
-        var nextReceiverName = scheduledReceiver?.User is not null
-            ? $"{scheduledReceiver.User.FirstName} {scheduledReceiver.User.LastName}"
+        // nextReceiverName = actual winner, only set after PaidOut
+        var nextReceiverName = round.Status == RoundStatus.PaidOut && round.Receiver is not null
+            ? $"{round.Receiver.FirstName} {round.Receiver.LastName}"
             : null;
 
         return new RoundDetailDto(
@@ -335,8 +376,8 @@ public class RoundService : IRoundService
             paidCount,
             round.Payments.Count,
             round.ReceiverId,
-            round.Receiver is not null ? $"{round.Receiver.FirstName} {round.Receiver.LastName}" : null,
             nextReceiverName,
+            null, // no scheduled receiver — winner drawn live at payout
             round.OpenedAt,
             round.PaidOutAt,
             paymentDtos
@@ -349,8 +390,8 @@ public class RoundService : IRoundService
         var circle = r.Circle;
         var pot = circle is not null ? paidCount * circle.Contribution : 0m;
 
-        // Scheduled receiver = member whose payout order equals this round number
-        membersByOrder.TryGetValue(r.RoundNumber, out var nextReceiverName);
+        // Only show receiver name after payout
+        var receiverName = r.Receiver is not null ? $"{r.Receiver.FirstName} {r.Receiver.LastName}" : null;
 
         return new RoundSummaryDto(
             r.Id,
@@ -360,8 +401,8 @@ public class RoundService : IRoundService
             paidCount,
             r.Payments.Count,
             r.ReceiverId,
-            r.Receiver is not null ? $"{r.Receiver.FirstName} {r.Receiver.LastName}" : null,
-            nextReceiverName,
+            receiverName,
+            null, // no scheduled receiver
             r.OpenedAt,
             r.PaidOutAt
         );

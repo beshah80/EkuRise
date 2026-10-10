@@ -9,10 +9,12 @@ namespace EkubApi.Services;
 public class CircleService : ICircleService
 {
     private readonly EkubDbContext _db;
+    private readonly INotificationService _notifications;
 
-    public CircleService(EkubDbContext db)
+    public CircleService(EkubDbContext db, INotificationService notifications)
     {
         _db = db;
+        _notifications = notifications;
     }
 
     public async Task<CircleDetailDto> CreateCircleAsync(CreateCircleDto dto, int organizerId)
@@ -135,32 +137,27 @@ public class CircleService : ICircleService
 
         var members = await _db.CircleMembers
             .Where(cm => cm.CircleId == circleId)
-            .OrderBy(cm => cm.JoinedAt)
             .ToListAsync();
 
         if (members.Count < 2)
-        {
             throw new InvalidOperationException("A circle needs at least 2 members to start.");
-        }
 
-        // Lock the member list: assign fixed payout order based on join order
-        for (var i = 0; i < members.Count; i++)
-        {
-            members[i].PayoutOrder = i + 1; // 1-based
-        }
+        // Assign display order (1-based, by join time) — NOT payout order
+        var ordered = members.OrderBy(m => m.JoinedAt).ToList();
+        for (var i = 0; i < ordered.Count; i++)
+            ordered[i].PayoutOrder = i + 1;
 
-        // Create one round per member. First round is Open, rest are Pending.
+        // Create one round per member, all Pending except first which is Open
         var rounds = new List<Round>();
         for (var i = 0; i < members.Count; i++)
         {
-            var round = new Round
+            rounds.Add(new Round
             {
                 CircleId = circleId,
                 RoundNumber = i + 1,
                 Status = i == 0 ? RoundStatus.Open : RoundStatus.Pending,
                 OpenedAt = i == 0 ? DateTime.UtcNow : null
-            };
-            rounds.Add(round);
+            });
         }
         _db.Rounds.AddRange(rounds);
         await _db.SaveChangesAsync();
@@ -171,6 +168,19 @@ public class CircleService : ICircleService
         circle.Status = CircleStatus.Active;
         circle.StartedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync();
+
+        // Notify all members the circle has started
+        foreach (var m in members)
+        {
+            await _notifications.CreateAsync(
+                m.UserId,
+                NotificationType.CircleStarted,
+                "Your circle has started! 🎉",
+                $"'{circle.Name}' is now active. Round 1 is open — time to pay your contribution.",
+                circle.Id,
+                rounds[0].Id
+            );
+        }
 
         return await BuildCircleDetailDto(circleId);
     }
@@ -335,6 +345,7 @@ public class CircleService : ICircleService
             user?.PhoneNumber ?? "",
             (int)request.Status,
             request.AgreedToTerms,
+            request.HasPaid,
             request.Message,
             request.CreatedAt
         );
@@ -361,6 +372,7 @@ public class CircleService : ICircleService
             r.User?.PhoneNumber ?? "",
             (int)r.Status,
             r.AgreedToTerms,
+            r.HasPaid,
             r.Message,
             r.CreatedAt
         )).ToList();
@@ -384,6 +396,9 @@ public class CircleService : ICircleService
 
         if (dto.Approved)
         {
+            if (!request.HasPaid)
+                throw new InvalidOperationException("Cannot approve: the requester has not paid the contribution yet. Mark as paid first.");
+
             request.Status = CircleJoinRequestStatus.Approved;
             request.ReviewedAt = DateTime.UtcNow;
 
@@ -411,6 +426,40 @@ public class CircleService : ICircleService
             request.User?.PhoneNumber ?? "",
             (int)request.Status,
             request.AgreedToTerms,
+            request.HasPaid,
+            request.Message,
+            request.CreatedAt
+        );
+    }
+
+    public async Task<JoinRequestDto> MarkJoinRequestPaidAsync(int circleId, int requestId, int organizerId, bool hasPaid)
+    {
+        var circle = await _db.Circles.FindAsync(circleId)
+            ?? throw new KeyNotFoundException("Circle not found.");
+
+        if (circle.OrganizerId != organizerId)
+            throw new UnauthorizedAccessException("Only the organizer can mark payment.");
+
+        var request = await _db.CircleJoinRequests
+            .Include(r => r.User)
+            .FirstOrDefaultAsync(r => r.Id == requestId && r.CircleId == circleId)
+            ?? throw new KeyNotFoundException("Join request not found.");
+
+        if (request.Status != CircleJoinRequestStatus.Pending)
+            throw new InvalidOperationException("Request is no longer pending.");
+
+        request.HasPaid = hasPaid;
+        await _db.SaveChangesAsync();
+
+        return new JoinRequestDto(
+            request.Id,
+            request.CircleId,
+            request.UserId,
+            request.User is not null ? $"{request.User.FirstName} {request.User.LastName}" : "Unknown",
+            request.User?.PhoneNumber ?? "",
+            (int)request.Status,
+            request.AgreedToTerms,
+            request.HasPaid,
             request.Message,
             request.CreatedAt
         );

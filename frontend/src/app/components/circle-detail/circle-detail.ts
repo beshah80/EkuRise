@@ -3,7 +3,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CircleService } from '../../services/circle.service';
 import { TokenService } from '../../services/token.service';
-import { CircleDetail as CircleDetailModel, RoundDetail, MemberHome } from '../../models/models';
+import { CircleDetail as CircleDetailModel, RoundDetail, MemberHome, JoinRequest } from '../../models/models';
 import { RoundService } from '../../services/round.service';
 import { DecimalPipe } from '@angular/common';
 
@@ -25,6 +25,7 @@ export class CircleDetail {
   circle = signal<CircleDetailModel | null>(null);
   currentRound = signal<RoundDetail | null>(null);
   memberStatus = signal<MemberHome | null>(null);
+  joinRequests = signal<JoinRequest[]>([]);
   loading = signal(true);
   error = signal('');
   success = signal('');
@@ -56,6 +57,9 @@ export class CircleDetail {
         if (c.status === 2) {
           this.loadMemberStatus();
         }
+        if (c.status === 0 && c.organizerId === this.currentUserId) {
+          this.loadJoinRequests();
+        }
       },
       error: () => { this.error.set('Circle not found'); this.loading.set(false); }
     });
@@ -72,6 +76,36 @@ export class CircleDetail {
     this.circleService.getMemberStatus(this.circleId).subscribe({
       next: (s) => this.memberStatus.set(s),
       error: () => {}
+    });
+  }
+
+  loadJoinRequests() {
+    this.circleService.getJoinRequests(this.circleId).subscribe({
+      next: (reqs) => this.joinRequests.set(reqs),
+      error: () => {}
+    });
+  }
+
+  approveRequest(requestId: number) {
+    this.circleService.reviewJoinRequest(this.circleId, requestId, { approved: true }).subscribe({
+      next: () => { this.loadCircle(); this.loadJoinRequests(); },
+      error: (err: any) => this.error.set(err.error?.message || err.error?.title || 'Failed to approve — mark as paid first')
+    });
+  }
+
+  rejectRequest(requestId: number) {
+    this.circleService.reviewJoinRequest(this.circleId, requestId, { approved: false }).subscribe({
+      next: () => this.loadJoinRequests(),
+      error: (err: any) => this.error.set(err.error?.title || 'Failed to reject')
+    });
+  }
+
+  toggleRequestPaid(requestId: number, hasPaid: boolean) {
+    this.circleService.markJoinRequestPaid(this.circleId, requestId, hasPaid).subscribe({
+      next: (updated) => {
+        this.joinRequests.update(reqs => reqs.map(r => r.id === requestId ? updated : r));
+      },
+      error: (err: any) => this.error.set(err.error?.title || 'Failed to update payment status')
     });
   }
 

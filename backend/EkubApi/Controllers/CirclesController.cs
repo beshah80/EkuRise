@@ -154,7 +154,22 @@ public class CirclesController : BaseController
     }
 
     /// <summary>
-    /// Approve or reject a join request. Organizer only.
+    /// Organizer marks a join request as paid (contribution received offline).
+    /// Must be done before approving.
+    /// </summary>
+    [HttpPut("{circleId}/join-requests/{requestId}/mark-paid")]
+    [ProducesResponseType(typeof(JoinRequestDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<JoinRequestDto>> MarkJoinRequestPaid(int circleId, int requestId, [FromBody] MarkJoinRequestPaidDto dto)
+    {
+        var organizerId = GetUserId();
+        var result = await _circleService.MarkJoinRequestPaidAsync(circleId, requestId, organizerId, dto.HasPaid);
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Approve or reject a join request. Organizer only. Requester must be marked paid first.
     /// </summary>
     [HttpPut("{circleId}/join-requests/{requestId}")]
     [ProducesResponseType(typeof(JoinRequestDto), StatusCodes.Status200OK)]

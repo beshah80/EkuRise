@@ -12,6 +12,8 @@ public class CircleJoinRequest
     public CircleJoinRequestStatus Status { get; set; } = CircleJoinRequestStatus.Pending;
     public bool AgreedToTerms { get; set; }
     public string? Message { get; set; }
+    /// <summary>Organizer marks this true after confirming the requester has paid the contribution.</summary>
+    public bool HasPaid { get; set; } = false;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? ReviewedAt { get; set; }
 }

@@ -16,6 +16,30 @@
     </div>
   }
 
+  <!-- SPIN OVERLAY -->
+  @if (spinning()) {
+    <div class="spin-overlay">
+      <div class="spin-card">
+        @if (!spinRevealed()) {
+          <div class="spin-title">🎰 Drawing Winner...</div>
+          <div class="spin-drum">
+            <div class="spin-name">{{ spinName() }}</div>
+          </div>
+          <div class="spin-hint">Randomly selecting from payout order...</div>
+        } @else {
+          <div class="winner-reveal">
+            <div class="winner-trophy">🏆</div>
+            <div class="winner-label">Winner!</div>
+            <div class="winner-name">{{ payoutResult()!.receiverName }}</div>
+            <div class="winner-amount">{{ payoutResult()!.potAmount.toLocaleString() }} ETB</div>
+            <div class="winner-sub">Round {{ payoutResult()!.roundNumber }} complete</div>
+            <button class="btn-winner-close" (click)="dismissWinner()">Continue →</button>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
   @if (round()) {
     <div class="content">
       <div class="card pot-card">
@@ -24,13 +48,19 @@
         <small>{{ round()!.paidCount }}/{{ round()!.totalMembers }} paid · {{ round()!.contribution }} ETB each</small>
 
         @if (round()!.status === 1 && round()!.nextReceiverName) {
-          <div class="receiver next-receiver">
-            🏆 This round's winner: <strong>{{ round()!.nextReceiverName }}</strong>
+          <div class="receiver scheduled-receiver">
+            🎯 Scheduled: <strong>{{ round()!.nextReceiverName }}</strong>
+          </div>
+        }
+
+        @if (round()!.status === 1 && !round()!.nextReceiverName) {
+          <div class="receiver scheduled-receiver">
+            🎰 Winner will be drawn at payout
           </div>
         }
 
         @if (round()!.status === 2) {
-          <div class="receiver">Received by: <strong>{{ round()!.receiverName }}</strong> on {{ formatDate(round()!.paidOutAt!) }}</div>
+          <div class="receiver winner-receiver">🏆 Winner: <strong>{{ round()!.receiverName }}</strong> · {{ formatDate(round()!.paidOutAt!) }}</div>
         }
       </div>
 

@@ -27,7 +27,9 @@ export class Home {
 
   // Join modal state
   selectedJoinCircle = signal<PublicCircleSummary | null>(null);
+  joinStep = signal<'info' | 'payment' | 'confirm'>(  'info');
   joinAgreed = signal(false);
+  joinHasPaid = signal(false);
   joinMessage = signal('');
   joinLoading = signal(false);
   joinError = signal('');
@@ -80,14 +82,18 @@ export class Home {
 
   openJoinModal(circle: PublicCircleSummary) {
     this.selectedJoinCircle.set(circle);
+    this.joinStep.set('info');
     this.joinAgreed.set(false);
+    this.joinHasPaid.set(false);
     this.joinMessage.set('');
     this.joinError.set('');
   }
 
   closeJoinModal() {
     this.selectedJoinCircle.set(null);
+    this.joinStep.set('info');
     this.joinAgreed.set(false);
+    this.joinHasPaid.set(false);
     this.joinMessage.set('');
     this.joinError.set('');
     this.joinLoading.set(false);

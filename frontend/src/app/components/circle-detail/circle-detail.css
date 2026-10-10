@@ -76,6 +76,12 @@ small { font-size: 12px; color: #888; }
 .step-you { font-size: 10px; color: #0F6B2D; font-weight: 700; margin-top: 2px; }
 
 /* Join requests panel */
-.req-btns { display: flex; gap: 6px; }
+.req-btns { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
 .btn-approve { background: none; border: 1px solid #c8e6c9; color: #0F6B2D; padding: 4px 10px; border-radius: 6px; font-size: 12px; cursor: pointer; }
+.btn-approve:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-sm { padding: 4px 10px; border-radius: 6px; font-size: 12px; cursor: pointer; background: none; border: 1px solid #ddd; color: #555; }
 .req-msg { display: block; font-style: italic; color: #777; margin-top: 2px; }
+.paid-badge { display: inline-block; margin-top: 4px; font-size: 11px; font-weight: 700; color: #0F6B2D; background: #e8f5e9; padding: 2px 8px; border-radius: 10px; }
+.unpaid-badge { display: inline-block; margin-top: 4px; font-size: 11px; font-weight: 700; color: #856404; background: #fff3cd; padding: 2px 8px; border-radius: 10px; }
+.next-winner-row.scheduled { background: #f8f9fa; color: #888; }
+.next-winner-row.scheduled strong { color: #555; }
