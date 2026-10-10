@@ -89,6 +89,37 @@
           </div>
         }
 
+        <!-- PAYOUT ROTATION TRACKER -->
+        <div class="card">
+          <h3>Payout Queue</h3>
+          <p class="queue-subtitle">Fixed order set at start — each member receives once</p>
+          <div class="rotation-track">
+            @for (m of circle()!.members; track m.userId) {
+              <div class="rotation-step"
+                [class.done]="m.hasReceived"
+                [class.current]="!m.hasReceived && m.payoutOrder === currentRound()?.roundNumber"
+                [class.waiting]="!m.hasReceived && m.payoutOrder !== currentRound()?.roundNumber">
+                <div class="step-bubble">
+                  @if (m.hasReceived) {
+                    <span class="step-icon">✓</span>
+                  } @else if (m.payoutOrder === currentRound()?.roundNumber) {
+                    <span class="step-icon">🏆</span>
+                  } @else {
+                    <span class="step-num">{{ m.payoutOrder }}</span>
+                  }
+                </div>
+                @if (m.payoutOrder < circle()!.memberCount) {
+                  <div class="step-line" [class.done-line]="m.hasReceived"></div>
+                }
+                <div class="step-name">{{ m.fullName.split(' ')[0] }}</div>
+                @if (m.userId === currentUserId) {
+                  <div class="step-you">You</div>
+                }
+              </div>
+            }
+          </div>
+        </div>
+
         <div class="card my-status">
           <h3>My Status</h3>
           <div class="status-rows">

@@ -45,9 +45,14 @@ public class CircleService : ICircleService
 
     public async Task<List<CircleSummaryDto>> GetMyCirclesAsync(int userId)
     {
-        var circles = await _db.CircleMembers
+        // Load circle IDs the user belongs to first, then load full circle data
+        var circleIds = await _db.CircleMembers
             .Where(cm => cm.UserId == userId)
-            .Select(cm => cm.Circle!)
+            .Select(cm => cm.CircleId)
+            .ToListAsync();
+
+        var circles = await _db.Circles
+            .Where(c => circleIds.Contains(c.Id))
             .Include(c => c.Organizer)
             .Include(c => c.Members)
             .Include(c => c.Rounds)
@@ -335,7 +340,8 @@ public class CircleService : ICircleService
             c.Status,
             c.Members.Count,
             currentRoundNumber ?? 0,
-            organizerName
+            organizerName,
+            c.OrganizerId
         );
     }
 }

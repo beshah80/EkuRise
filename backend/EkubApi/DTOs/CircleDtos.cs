@@ -55,7 +55,8 @@ public record CircleSummaryDto(
     CircleStatus Status,
     int MemberCount,
     int CurrentRoundNumber,
-    string OrganizerName
+    string OrganizerName,
+    int OrganizerId
 );
 
 /// <summary>

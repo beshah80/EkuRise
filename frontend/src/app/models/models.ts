@@ -237,6 +237,7 @@ export interface CircleSummary {
   memberCount: number;
   currentRoundNumber: number;
   organizerName: string;
+  organizerId: number;
 }
 
 export interface CircleDetail {
